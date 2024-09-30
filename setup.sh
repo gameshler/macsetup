@@ -40,7 +40,7 @@ brew install --cask \
   iterm2 alfred rectangle alt-tab discord slack vlc keka visual-studio-code sublime-text docker
 
 # Install formulaes
-echo "Installing formulas..."
+echo "Installing formulaes..."
 brew install ffmpeg imagemagick wget telnet tldr
 
 # Set up zsh profile
