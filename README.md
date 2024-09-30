@@ -24,7 +24,7 @@ This repo contains info on all the apps / tools / settings I use on my Mac.
 
 ## Usage Instructions
 
-clone the repository then cd into the repository(macsetup) and run ~/setup.sh then follow through the script
+clone the repository then cd into the repository(macsetup) and run ./setup.sh then follow through the script
 
 ## OS Settings
 
