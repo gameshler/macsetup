@@ -2,6 +2,7 @@
 
 This repo contains info on all the apps / tools / settings I use on my Mac.
 
+- [Usage Instructions](#usage-instructions)
 - [OS Settings](#os-settings)
   - [Desktop](#desktop)
   - [Finder](#finder)
@@ -20,6 +21,10 @@ This repo contains info on all the apps / tools / settings I use on my Mac.
     - [Other command line tools I use](#other-command-line-tools-i-use)
 - [Node.js](#nodejs)
   - [Global Modules](#global-modules)
+
+## Usage Instructions
+
+clone the repository then cd into the repository(macsetup) and run ~/setup.sh then follow through the script
 
 ## OS Settings
 
