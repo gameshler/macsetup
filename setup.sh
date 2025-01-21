@@ -1,67 +1,127 @@
 #!/bin/bash
 
-# Function to check if Homebrew is installed
-is_homebrew_installed() {
-  command -v brew >/dev/null 2>&1
-}
+# Configuration options
+CONFIG_FILE="$HOME/.mac_setup_config"
+DEFAULT_CONFIG='{
+  "install_homebrew": true,
+  "install_oh_my_zsh": true,
+  "casks": ["iterm2", "alfred", "rectangle", "alt-tab", "discord", "slack", "vlc", "keka", "visual-studio-code", "sublime-text", "docker"],
+  "formulae": ["ffmpeg", "imagemagick", "wget", "telnet", "tldr"]
+}'
 
-# Check if Homebrew is already installed
-if ! is_homebrew_installed; then
-  echo "Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-else
-  echo "Homebrew is already installed. Skipping installation."
-fi
-
-# Add Homebrew to PATH
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-# Function to check if Oh My Zsh is installed
-is_oh_my_zsh_installed() {
-  if [ -d "$HOME/.oh-my-zsh" ]; then
-    return 0
+# Function to load configuration
+load_config() {
+  if [ -f "$CONFIG_FILE" ]; then
+    . "$CONFIG_FILE"
   else
-    return 1
+    echo "$DEFAULT_CONFIG" >"$CONFIG_FILE"
+    . "$CONFIG_FILE"
   fi
 }
 
-# Check if Oh My Zsh is already installed
-if ! is_oh_my_zsh_installed; then
-  echo "Installing Oh My Zsh..."
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-else
-  echo "Oh My Zsh is already installed. Skipping installation."
-fi
+# Load configuration
+load_config
 
-# Install casks
-echo "Installing casks..."
-brew install --cask \
-  iterm2 alfred rectangle alt-tab discord slack vlc keka visual-studio-code sublime-text docker
+# Function to log messages
+log_message() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
 
-# Install formulaes
-echo "Installing formulaes..."
-brew install ffmpeg imagemagick wget telnet tldr
+# Function to check if command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
 
-# Set up zsh profile
-echo "Setting up zsh profile..."
+# Function to install Homebrew
+install_homebrew() {
+  if ! command_exists brew; then
+    log_message "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
+    return 0
+  fi
+  log_message "Homebrew is already installed."
+  return 1
+}
 
-# Define dotfiles array
-DOTFILES=(.gitconfig .gitignore .zshrc)
+# Function to install Oh My Zsh
+install_oh_my_zsh() {
+  if ! [ -d "$HOME/.oh-my-zsh" ]; then
+    log_message "Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    return 0
+  fi
+  log_message "Oh My Zsh is already installed."
+  return 1
+}
 
-# Loop through dotfiles and copy them
-for dotfile in "${DOTFILES[@]}"; do
-  cp ~/macsetup/$dotfile ~/$dotfile
-done
+# Function to install casks
+install_casks() {
+  local casks=("$@")
+  for cask in "${casks[@]}"; do
+    brew install --cask "$cask"
+  done
+}
 
-# Source the copied zsh profile
-source ~/.zshrc
+# Function to install formulaes
+install_formulaes() {
+  local formulaes=("$@")
+  for formula in "${formulaes[@]}"; do
+    brew install "$formula"
+  done
+}
 
-# Install Nodejs (nvm)
-echo "Installing Nodejs (nvm)..."
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-nvm install 20
-nvm use 20
-npm install -g lite-server http-server license gitignore
+# Main installation function
+main_installation() {
+  log_message "Starting Mac setup..."
 
-echo "Setup completed successfully!"
+  # Install Homebrew
+  if $install_homebrew; then
+    log_message "Homebrew installation successful."
+  else
+    log_message "Error installing Homebrew. Exiting."
+    exit 1
+  fi
+
+  # Install Oh My Zsh
+  if $install_oh_my_zsh; then
+    log_message "Oh My Zsh installation successful."
+  else
+    log_message "Error installing Oh My Zsh. Continuing without it."
+  fi
+
+  # Install casks
+  log_message "Installing casks..."
+  install_casks "${config[casks]}"
+
+  # Install formulaes
+  log_message "Installing formulaes..."
+  install_formulaes "${config[formulae]}"
+
+  # Set up zsh profile
+  log_message "Setting up zsh profile..."
+
+  # Define dotfiles array
+  DOTFILES=(.gitconfig .gitignore .zshrc)
+
+  # Loop through dotfiles and copy them
+  for dotfile in "${DOTFILES[@]}"; do
+    cp ~/macsetup/$dotfile ~/$dotfile
+  done
+
+  # Source the copied zsh profile
+  source ~/.zshrc
+
+  # Install Nodejs (nvm)
+  log_message "Installing Nodejs (nvm)..."
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+  nvm install 20
+  nvm use 20
+  npm install -g lite-server http-server license gitignore
+
+  log_message "Setup completed successfully!"
+}
+
+# Run the main installation function
+main_installation
