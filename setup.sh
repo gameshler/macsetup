@@ -3,9 +3,9 @@
 # Configuration options
 CONFIG_FILE="$HOME/.mac_setup_config"
 DEFAULT_CONFIG='{
-  "install_homebrew": true,
-  "install_oh_my_zsh": true,
-  "install_office": true,
+  "install_homebrew": false,
+  "install_oh_my_zsh": false,
+  "install_office": false,
   "casks": ["iterm2", "alfred", "rectangle", "alt-tab", "discord", "slack", "vlc", "keka", "visual-studio-code", "sublime-text", "docker"],
   "formulae": ["ffmpeg", "imagemagick", "wget", "telnet", "tldr"],
   "office_pkg_url": "https://mega.nz/file/PNNlWKCa#vBSY-AGuPyXB-qVMZwoSWg_cPd3o2w0008YF6fXNrTw",
