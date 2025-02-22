@@ -1,5 +1,6 @@
 #!/bin/bash
 
+<<<<<<< HEAD:setup.sh
 # Configuration options
 CONFIG_FILE="$HOME/.mac_setup_config"
 DEFAULT_CONFIG='{
@@ -17,6 +18,20 @@ DEFAULT_CONFIG='{
 load_config() {
   if [ -f "$CONFIG_FILE" ]; then
     . "$CONFIG_FILE"
+=======
+# Set up Homebrew
+echo "Setting up Homebrew..."
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Add Homebrew to PATH
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Function to check if Oh My Zsh is installed
+is_oh_my_zsh_installed() {
+  if [ -d "$HOME/.oh-my-zsh" ]; then
+    return 0
+>>>>>>> parent of 6dbaf8b (Updated Script):Mac Setup/setup.sh
   else
     echo "$DEFAULT_CONFIG" >"$CONFIG_FILE"
     . "$CONFIG_FILE"
@@ -26,10 +41,17 @@ load_config() {
 # Load configuration
 load_config
 
+<<<<<<< HEAD:setup.sh
 # Function to log messages
 log_message() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
+=======
+# Install casks
+echo "Installing casks..."
+brew install --cask \
+  iterm2 alfred rectangle alt-tab android-file-transfer android-platform-tools keepingyouawake discord slack vlc keka kap time-out figma visual-studio-code sublime-text
+>>>>>>> parent of 6dbaf8b (Updated Script):Mac Setup/setup.sh
 
 # Function to check if command exists
 command_exists() {
@@ -60,6 +82,7 @@ install_oh_my_zsh() {
   return 1
 }
 
+<<<<<<< HEAD:setup.sh
 # Function to install casks
 install_casks() {
   local casks=("$@")
@@ -67,6 +90,12 @@ install_casks() {
     brew install --cask "$cask"
   done
 }
+=======
+# Loop through dotfiles and copy them
+for dotfile in "${DOTFILES[@]}"; do
+  cp ~/macsetup/$dotfile ~/
+done
+>>>>>>> parent of 6dbaf8b (Updated Script):Mac Setup/setup.sh
 
 # Function to install formulaes
 install_formulaes() {
@@ -76,6 +105,7 @@ install_formulaes() {
   done
 }
 
+<<<<<<< HEAD:setup.sh
 # Function to download Office
 download_office_files() {
   log_message "Downloading Office installation files..."
@@ -185,3 +215,6 @@ main_installation() {
 
 # Run the main installation function
 main_installation
+=======
+echo "Setup completed successfully!"
+>>>>>>> parent of 6dbaf8b (Updated Script):Mac Setup/setup.sh
