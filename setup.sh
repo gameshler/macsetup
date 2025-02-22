@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# Configuration options
 CONFIG_FILE="$HOME/.mac_setup_config"
 DEFAULT_CONFIG='{
-  "install_homebrew": false,
-  "install_oh_my_zsh": false,
-  "install_office": false,
   "casks": ["iterm2", "alfred", "rectangle", "alt-tab", "discord", "slack", "vlc", "keka", "visual-studio-code", "sublime-text", "docker"],
   "formulae": ["ffmpeg", "imagemagick", "wget", "telnet", "tldr"],
   "office_pkg_url": "https://mega.nz/file/PNNlWKCa#vBSY-AGuPyXB-qVMZwoSWg_cPd3o2w0008YF6fXNrTw",
@@ -13,7 +9,6 @@ DEFAULT_CONFIG='{
   "office_apps": ["Word", "Excel", "PowerPoint"]
 }'
 
-# Function to load configuration
 load_config() {
   if [ -f "$CONFIG_FILE" ]; then
     . "$CONFIG_FILE"
@@ -23,52 +18,29 @@ load_config() {
   fi
 }
 
-# Load configuration
 load_config
-
-# Function to log messages
 log_message() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
-# Function to check if command exists
-command_exists() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-# Function to install Homebrew
 install_homebrew() {
-  if ! command_exists brew; then
-    log_message "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
-    return 0
-  fi
-  log_message "Homebrew is already installed."
-  return 1
+  log_message "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
 }
 
-# Function to install Oh My Zsh
 install_oh_my_zsh() {
-  if ! [ -d "$HOME/.oh-my-zsh" ]; then
-    log_message "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    return 0
-  fi
-  log_message "Oh My Zsh is already installed."
-  return 1
+  log_message "Installing Oh My Zsh..."
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 }
 
-# Function to install casks
 install_casks() {
   local casks=("$@")
   for cask in "${casks[@]}"; do
     brew install --cask "$cask"
   done
 }
-
-# Function to install formulaes
 install_formulaes() {
   local formulaes=("$@")
   for formula in "${formulaes[@]}"; do
@@ -76,7 +48,6 @@ install_formulaes() {
   done
 }
 
-# Function to download Office
 download_office_files() {
   log_message "Downloading Office installation files..."
   mkdir -p ~/Downloads/Microsoft_Office
@@ -87,32 +58,20 @@ download_office_files() {
 }
 
 install_office() {
-  if [ "${config[install_office]}" != "true" ] ||
-    [ -z "${config[office_pkg_url]}" ] ||
-    [ -z "${config[serializer_url]}" ]; then
-    return
-  fi
-
   log_message "Starting Office installation..."
-
-  # Remove existing Office installation
   if [ -d "/Applications/Microsoft Office" ]; then
     log_message "Removing existing Office installation..."
     rm -rf "/Applications/Microsoft Office"
   fi
 
-  # Download files
   download_office_files
-
-  # Install Office PKG
+  # check links
   log_message "Installing Office PKG..."
   sudo installer -pkg ~/Downloads/Microsoft_Office/Microsoft_Office.pkg -target /
 
-  # Install Serializer
   log_message "Installing Office Serializer..."
   sudo installer -pkg ~/Downloads/Microsoft_Office/Microsoft_Office_VL_Serializer.pkg -target /
 
-  # Verify installation
   log_message "Verifying Office installation..."
   for app in "${config[office_apps]}"; do
     if [ ! -f "/Applications/Microsoft $app.app" ]; then
@@ -123,57 +82,22 @@ install_office() {
 
   log_message "Office installation and activation completed successfully!"
   return 0
+
 }
 
-# Main installation function
 main_installation() {
   log_message "Starting Mac setup..."
-
-  # Install Homebrew
-  if $install_homebrew; then
-    log_message "Homebrew installation successful."
-  else
-    log_message "Error installing Homebrew. Exiting."
-    exit 1
-  fi
-
-  # Install Oh My Zsh
-  if $install_oh_my_zsh; then
-    log_message "Oh My Zsh installation successful."
-  else
-    log_message "Error installing Oh My Zsh. Continuing without it."
-  fi
-
-  # Install casks
-  log_message "Installing casks..."
+  install_homebrew
+  install_oh_my_zsh
   install_casks "${config[casks]}"
-
-  # Install formulaes
-  log_message "Installing formulaes..."
   install_formulaes "${config[formulae]}"
-
-  # Set up zsh profile
-  log_message "Setting up zsh profile..."
-
-  # Define dotfiles array
+  install_office
+  log_message "setting up zsh profile..."
   DOTFILES=(.gitconfig .gitignore .zshrc)
-
-  # Loop through dotfiles and copy them
   for dotfile in "${DOTFILES[@]}"; do
     cp ~/macsetup/$dotfile ~/$dotfile
   done
-
-  # Source the copied zsh profile
   source ~/.zshrc
-
-  # Install Office
-  if $install_office; then
-    log_message "Installation Successful"
-  else
-    log_message "Error installing Office. Continuing without it."
-  fi
-
-  # Install Nodejs (nvm)
   log_message "Installing Nodejs (nvm)..."
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
   nvm install 20
@@ -183,5 +107,4 @@ main_installation() {
   log_message "Setup completed successfully!"
 }
 
-# Run the main installation function
 main_installation
