@@ -224,10 +224,10 @@ I use nvm to manage the installed versions of Node.js on my machine. This allows
 
 See installation instructions [here](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-OR run this command (make sure v0.39.7 is still the latest)
+OR run this command (make sure v0.40.3 is still the latest)
 
 ```sh
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 ```
 
 Now that nvm is installed, you can install a specific version of node.js and use it:
