@@ -59,9 +59,9 @@ source ~/.zshrc
 
 # Install Nodejs (nvm)
 echo "Installing Nodejs (nvm)..."
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-nvm install 20
-nvm use 20
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install 25
+nvm use stable
 npm install -g lite-server http-server license gitignore
 
 echo "Setup completed successfully!"
