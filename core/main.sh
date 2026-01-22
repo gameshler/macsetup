@@ -81,8 +81,9 @@ choose_directory() {
         echo -e "Exiting."
         exit 0
       else
-        current_dir="${parent_stack[-1]}"
-        parent_stack=("${parent_stack[@]::${#parent_stack[@]}-1}")
+        last_index=$(( ${#parent_stack[@]} - 1 ))
+        current_dir="${parent_stack[$last_index]}"
+        parent_stack=("${parent_stack[@]:0:$last_index}")
       fi
     else
       echo -e "Invalid choice."
