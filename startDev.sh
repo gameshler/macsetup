@@ -14,7 +14,7 @@ main() {
   echo -e "Downloading repository..."
 
   # Download and extract repository
-  ZIP_FILE = "$TEMP_DIR/$BRANCH.zip"
+  ZIP_FILE="$TEMP_DIR/$BRANCH.zip"
   if ! curl -fsSL -o "$ZIP_FILE" "https://github.com/$REPO/archive/refs/heads/$BRANCH.zip"; then
     echo -e "Failed to download repository"
     exit 1
