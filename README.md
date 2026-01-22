@@ -34,7 +34,7 @@ These are my preferred settings for `Desktop`, `Finder` and the `Dock`.
 
 ### Desktop
 
-I don't like the new Desktop, Stage Manager or Widget features in Sonoma, so I disable them.
+I don't like the new Desktop, Stage Manager or Widget features, so I disable them.
 
 - System Preferences
   - Desktop & Dock
