@@ -43,7 +43,7 @@ get_file_from_web() {
 	file="$2"
 
 	if [ -z "$url" ] || [ -z "$file" ]; then
-		printf "Usage: get_file_from_web URL FILE\n" >&2
+		printf "Url or File does not exist\n" >&2
 		return 2
 	fi
 
@@ -58,19 +58,12 @@ get_file_from_web() {
 		mkdir -p "$file_directory" || { printf "Failed to create directory %s\n" "$file_directory" >&2; return 1; }
 	fi
 
-	tmpdir=""
-	created_tmpdir=0
-	if [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ]; then
-		tmpdir="$TEMP_DIR"
-	else
-		tmpdir="$(mktemp -d 2>/dev/null || true)"
-		if [ -z "$tmpdir" ]; then
-			printf "Failed to create temporary directory.\n" >&2
-			return 1
-		fi
-		created_tmpdir=1
+	if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
+		printf "Missing or Invalid Temp Directory\n" >&2
+		return 2
 	fi
 
+	tmpdir="$TEMP_DIR"
 	tmpfile="$tmpdir/$(basename "$file").part.$$"
 
 	rc=0
@@ -86,10 +79,6 @@ get_file_from_web() {
 	else
 		printf "Error: curl is not installed.\n" >&2
 		rc=1
-	fi
-
-	if [ "$created_tmpdir" -eq 1 ] && [ -d "$tmpdir" ]; then
-		rm -rf "$tmpdir"
 	fi
 
 	return $rc
