@@ -14,9 +14,14 @@ main() {
   echo -e "Downloading repository..."
 
   # Download and extract repository
-  if ! curl -fsSL "https://github.com/$REPO/archive/$BRANCH.zip" | \
-       unzip "$TEMP_DIR"; then
+  ZIP_FILE="$TEMP_DIR/$BRANCH.zip"
+  if ! curl -fsSL -o "$ZIP_FILE" "https://github.com/$REPO/archive/refs/heads/$BRANCH.zip"; then
     echo -e "Failed to download repository"
+    exit 1
+  fi
+
+  if ! unzip -q "$ZIP_FILE" -d "$TEMP_DIR"; then
+    echo -e "Failed to extract repository"
     exit 1
   fi
 
