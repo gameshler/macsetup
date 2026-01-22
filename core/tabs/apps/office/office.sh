@@ -5,6 +5,11 @@
 OFFICE_PKG_URL="https://drive.usercontent.google.com/download?id=1pJWOhKQy8bpJ6lb3KBjP6FI4svztflsE&export=download&authuser=0&confirm=t&uuid=6e26f0f0-8d4c-4897-8011-05092730ab8b&at=APcXIO2IiVe-L-BPPHvNEaXF1zG8:1769118187754"
 SERIALIZER_PKG_URL="https://drive.usercontent.google.com/download?id=11-uNaVy01Pq-pW8tDcy2TyIjHvMjrSJr&export=download&authuser=0&confirm=t&uuid=55a431eb-28bb-4dd9-babb-151cb392368e&at=APcXIO0DRDyEUB7nn2rTgh8vt2FT:1769118234441"
 
+if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
+	printf "Missing or Invalid Temp Directory\n" >&2
+	exit 1
+fi
+
 office_pkg="$TEMP_DIR/office.pkg"
 serializer_pkg="$TEMP_DIR/serializer.pkg"
 
