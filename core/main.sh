@@ -29,10 +29,15 @@ choose_directory() {
     local options=()
     local i=1
 
+    ENTRIES=()
     if [[ "$current_dir" == "$TABS_DIR" ]]; then
-      mapfile -t ENTRIES < <(find "$current_dir" -mindepth 1 -maxdepth 1 -type d | sort)
+      while IFS= read -r entry; do
+        ENTRIES+=("$entry")
+      done < <(find "$current_dir" -mindepth 1 -maxdepth 1 -type d | sort)
     else
-      mapfile -t ENTRIES < <(find "$current_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type f -name "*.sh" \) | sort)
+      while IFS= read -r entry; do
+        ENTRIES+=("$entry")
+      done < <(find "$current_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type f -name "*.sh" \) | sort)
     fi
 
     if [[ "${#ENTRIES[@]}" -eq 0 ]]; then
