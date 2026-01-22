@@ -38,3 +38,59 @@ checkPackageManager() {
   fi
 }
 
+get_file_from_web() {
+	url="$1"
+	file="$2"
+
+	if [ -z "$url" ] || [ -z "$file" ]; then
+		printf "Usage: get_file_from_web URL FILE\n" >&2
+		return 2
+	fi
+
+	case "$file" in
+		./*) file="$(pwd)/${file#./}" ;;
+		/*) ;;
+		*) file="$(pwd)/$file" ;;
+	esac
+
+	file_directory=$(dirname "$file")
+	if [ ! -d "$file_directory" ]; then
+		mkdir -p "$file_directory" || { printf "Failed to create directory %s\n" "$file_directory" >&2; return 1; }
+	fi
+
+	tmpdir=""
+	created_tmpdir=0
+	if [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ]; then
+		tmpdir="$TEMP_DIR"
+	else
+		tmpdir="$(mktemp -d 2>/dev/null || true)"
+		if [ -z "$tmpdir" ]; then
+			printf "Failed to create temporary directory.\n" >&2
+			return 1
+		fi
+		created_tmpdir=1
+	fi
+
+	tmpfile="$tmpdir/$(basename "$file").part.$$"
+
+	rc=0
+	if command_exists curl; then
+		if curl --fail --location --show-error --progress-bar -o "$tmpfile" "$url"; then
+			mv "$tmpfile" "$file"
+			rc=0
+		else
+			rc=$?
+			rm -f "$tmpfile"
+			printf "Failed to download %s (curl rc=%d)\n" "$url" "$rc" >&2
+		fi
+	else
+		printf "Error: curl is not installed.\n" >&2
+		rc=1
+	fi
+
+	if [ "$created_tmpdir" -eq 1 ] && [ -d "$tmpdir" ]; then
+		rm -rf "$tmpdir"
+	fi
+
+	return $rc
+}
