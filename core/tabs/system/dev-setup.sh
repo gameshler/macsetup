@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/zsh -e
 
 . "$COMMON_SCRIPT"
 
