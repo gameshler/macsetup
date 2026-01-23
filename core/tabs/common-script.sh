@@ -2,7 +2,13 @@
 
 command_exists() {
 for cmd in "$@"; do
-    command -v "$cmd" >/dev/null 2>&1 || return 1
+  if command -v "$cmd" >/dev/null 2>&1; then
+    continue
+  fi
+  if command -v open >/dev/null 2>&1 && open -Ra "$cmd" >/dev/null 2>&1; then
+    continue
+  fi
+  return 1
 done
 return 0
 }

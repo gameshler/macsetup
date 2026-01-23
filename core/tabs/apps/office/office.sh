@@ -10,6 +10,11 @@ if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
 	exit 1
 fi
 
+if command_exists "Microsoft Word"; then
+ printf "Microsoft Office is already installed.\n"
+ exit 0
+fi
+
 office_pkg="$TEMP_DIR/office.pkg"
 serializer_pkg="$TEMP_DIR/serializer.pkg"
 
