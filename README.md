@@ -34,7 +34,7 @@ These are my preferred settings for `Desktop`, `Finder` and the `Dock`.
 
 ### Desktop
 
-I don't like the new Desktop, Stage Manager or Widget features in Sonoma, so I disable them.
+I don't like the new Desktop, Stage Manager or Widget features, so I disable them.
 
 - System Preferences
   - Desktop & Dock
@@ -234,8 +234,8 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 Now that nvm is installed, you can install a specific version of node.js and use it:
 
 ```sh
-nvm install 20
-nvm use 20
+nvm install 25
+nvm use stable
 node --version
 ```
 
