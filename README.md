@@ -24,8 +24,9 @@ This repo contains info on all the apps / tools / settings I use on my Mac.
 
 ## Usage Instructions
 
-Before doing anything make sure you are on zsh not bash you can run terminal and check if you are on bash or zsh `echo $SHELL` if the result is bin/bash you should change it to zsh. 
-clone the repository then cd into the repository(macsetup) and run ./setup.sh then follow through the script
+```sh
+bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/dev/startDev.sh)
+```
 
 ## OS Settings
 
