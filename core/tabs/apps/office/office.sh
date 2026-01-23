@@ -7,8 +7,8 @@ SERIALIZER_PKG_URL="https://trashbytes.net/dl/W1nDXBrtIJ72C7prwQ2geNwcz8aF5bhtPK
 
 choose_installation(){
   printf "choose what to install:\n"
-  printf "1) Install Microsoft Office Suite\n"
-  printf "2) Install Microsoft Office (Word, Excel, Powerpoint)\n"
+  printf "1) Microsoft Office Suite\n"
+  printf "2) Microsoft Office (Word, Excel, Powerpoint) Only\n"
   printf "Enter your choice (1 or 2): "
 
   read -r CHOICE
@@ -132,10 +132,10 @@ exit 0
 install_components() {
   choose_installation
 
-  if ["$FULL_OFFICE" -eq 1]; then
+  if [ "$FULL_OFFICE" -eq 1 ]; then
    installOffice ""
   fi
-  if ["$PARTIAL_OFFICE" -eq 1]; then
+  if [ "$PARTIAL_OFFICE" -eq 1 ]; then
    installOffice "$choices_file"
   fi
 }
