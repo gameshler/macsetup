@@ -2,7 +2,13 @@
 
 command_exists() {
 for cmd in "$@"; do
-    command -v "$cmd" >/dev/null 2>&1 || return 1
+  if command -v "$cmd" >/dev/null 2>&1; then
+    continue
+  fi
+  if command -v open >/dev/null 2>&1 && open -Ra "$cmd" >/dev/null 2>&1; then
+    continue
+  fi
+  return 1
 done
 return 0
 }
@@ -38,3 +44,48 @@ checkPackageManager() {
   fi
 }
 
+get_file_from_web() {
+	url="$1"
+	file="$2"
+
+	if [ -z "$url" ] || [ -z "$file" ]; then
+		printf "Url or File does not exist\n" >&2
+		return 2
+	fi
+
+	case "$file" in
+		./*) file="$(pwd)/${file#./}" ;;
+		/*) ;;
+		*) file="$(pwd)/$file" ;;
+	esac
+
+	file_directory=$(dirname "$file")
+	if [ ! -d "$file_directory" ]; then
+		mkdir -p "$file_directory" || { printf "Failed to create directory %s\n" "$file_directory" >&2; return 1; }
+	fi
+
+	if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
+		printf "Missing or Invalid Temp Directory\n" >&2
+		return 2
+	fi
+
+	tmpdir="$TEMP_DIR"
+	tmpfile="$tmpdir/$(basename "$file").part.$$"
+
+	rc=0
+	if command_exists curl; then
+		if curl --fail --location --show-error --progress-bar -o "$tmpfile" "$url"; then
+			mv "$tmpfile" "$file"
+			rc=0
+		else
+			rc=$?
+			rm -f "$tmpfile"
+			printf "Failed to download %s (curl rc=%d)\n" "$url" "$rc" >&2
+		fi
+	else
+		printf "Error: curl is not installed.\n" >&2
+		rc=1
+	fi
+
+	return $rc
+}
