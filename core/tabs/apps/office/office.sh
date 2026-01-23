@@ -15,10 +15,11 @@ choose_installation(){
 
   case $CHOICE in
     1)
-      installOffice ""
-      ;;
+      FULL_OFFICE=1; PARTIAL_OFFICE=0 ;;
     2)
-    choices_file="$TEMP_DIR/office_choices.xml"
+      FULL_OFFICE=0; PARTIAL_OFFICE=1
+
+choices_file="$TEMP_DIR/office_choices.xml"
       cat << EOF > "$choices_file"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -59,20 +60,15 @@ choose_installation(){
 </array>
 </plist>
 EOF
-
-installOffice "$choices_file"
-      ;;
+;;
     *)
       printf "Invalid choice. Please enter 1 or 2.\n" >&2
       exit 1
       ;;
   esac
-
 }
 
 installOffice() {
-
-choose_installation
 
 local choices_xml="$1"
 
@@ -133,4 +129,16 @@ exit 0
 
 }
 
-installOffice
+install_components() {
+  choose_installation
+
+  if ["$FULL_OFFICE" -eq 1]; then
+   installOffice ""
+  fi
+  if ["$PARTIAL_OFFICE" -eq 1]; then
+   installOffice "$choices_file"
+  fi
+}
+
+install_components
+
