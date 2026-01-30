@@ -13,9 +13,9 @@ export EDITOR='nano'
 # -------
 # Aliases
 # -------
-alias l="ls" # List files in current directory
+alias l="ls"      # List files in current directory
 alias ll="ls -al" # List all files in current directory in long list format
-alias o="open ." # Open the current directory in Finder
+alias o="open ."  # Open the current directory in Finder
 
 # ----------------------
 # Git Aliases
@@ -25,3 +25,4 @@ alias gcm='git commit -m'
 alias gpsh='git push'
 alias gss='git status -s'
 alias gs='echo ""; echo "*********************************************"; echo -e "   DO NOT FORGET TO PULL BEFORE COMMITTING"; echo "*********************************************"; echo ""; git status'
+
