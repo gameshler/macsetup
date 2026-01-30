@@ -29,9 +29,9 @@ installNeovim() {
 linkNeovimConfig() {
     printf "Linking Neovim Configuration Files..."
     mkdir -p "$HOME/.config/nvim"
-    ln -s "$TEMP_DIR/lua" "$HOME/.config/nvim/"
-    ln -s "$TEMP_DIR/init.lua/" "$HOME/.config/nvim/"
-    ln -s "$TEMP_DIR/lazy-lock.json" "$HOME/.config/nvim/"
+    cp -r "$TEMP_DIR/neovim/lua" "$HOME/.config/nvim/"
+    cp -r "$TEMP_DIR/neovim/init.lua" "$HOME/.config/nvim/"
+    cp -r "$TEMP_DIR/neovim/lazy-lock.json" "$HOME/.config/nvim/"
 
 }
 
