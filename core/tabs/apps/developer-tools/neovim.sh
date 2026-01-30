@@ -8,7 +8,7 @@ cloneNeovim() {
         exit 1
     fi
 
-    git clone https://github.com/gameshler/neovim.git "$TEMP_DIR"
+    git clone https://github.com/gameshler/neovim.git "$TEMP_DIR/neovim"
 
 }
 
