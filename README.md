@@ -25,7 +25,6 @@ This repo contains info on all the apps / tools / settings I use on my Mac.
 ## Usage Instructions
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/dev/startDev.sh)
 bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/main/start.sh)
 ```
 
