@@ -149,23 +149,41 @@ install_components() {
     choose_installation
 
     if [ "$FULL_OFFICE" -eq 1 ]; then
+        all_installed=true
         for app in "${OFFICE_APPS[@]}"; do
-            if command_exists "$app"; then
-                printf "%s is already installed. Skipping installation.\n" "$app"
-                exit 0
+            if ! command_exists "$app"; then
+                all_installed=false
+                break
             fi
         done
-        installOffice ""
+
+        if [ "$all_installed" = true ]; then
+            printf "Full Office suite already installed. Skipping.\n"
+            exit 0
+        else
+            printf "Installing full Office suite...\n"
+            installOffice ""
+        fi
     fi
+
     if [ "$PARTIAL_OFFICE" -eq 1 ]; then
+        all_installed=true
         for app in "${OFFICE_PARTIAL_APPS[@]}"; do
-            if command_exists "$app"; then
-                printf "%s is already installed. Skipping installation.\n" "$app"
-                exit 0
+            if ! command_exists "$app"; then
+                all_installed=false
+                break
             fi
         done
-        installOffice "$choices_file"
+
+        if [ "$all_installed" = true ]; then
+            printf "Core Office apps already installed. Skipping.\n"
+            exit 0
+        else
+            printf "Installing core Office apps...\n"
+            installOffice "$choices_file"
+        fi
     fi
+
 }
 
 install_components
