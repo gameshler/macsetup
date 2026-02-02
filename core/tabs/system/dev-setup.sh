@@ -11,14 +11,6 @@ installDepend() {
 setupZshConfig() {
     printf "Setting up Zsh Configuration..."
 
-    if [ ! -f "$HOME/.oh-my-zsh" ]; then
-        printf "oh-my-zsh file not found!"
-        printf "installing oh-my-zsh..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    else
-        printf "Oh My Zsh is already installed. Skipping installation."
-    fi
-
     dotfiles=(.gitconfig .zshrc)
 
     for dotfile in "${dotfiles[@]}"; do

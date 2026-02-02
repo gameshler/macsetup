@@ -78,7 +78,6 @@ EOF
         ;;
     esac
 }
-
 installOffice() {
 
     local choices_xml="$1"
@@ -89,7 +88,7 @@ installOffice() {
     fi
 
     if command_exists "Microsoft Word"; then
-        printf "Microsoft Office is already installed.\n"
+        printf "Microsoft Office is already installed. Skipping installation.\n"
         exit 0
     fi
 
