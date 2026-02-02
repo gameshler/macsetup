@@ -1,14 +1,25 @@
-#!/bin/sh -e
+#!/bin/bash
 
 . "$COMMON_SCRIPT"
 
 OFFICE_PKG_URL="https://officecdnmac.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.105.26011018_BusinessPro_Installer.pkg"
 SERIALIZER_PKG_URL="https://trashbytes.net/dl/W1nDXBrtIJ72C7prwQ2geNwcz8aF5bhtPKkRSBWlh2BV_1MmH9uXKcACDwH1mMSu8HohphcINbjRzZxnqui-8PiDK6Sb-RcICv70i7PlmpP9hx3g0IlcfWSjZXxyjwnbMPMNBo8JeCRy22BOXhsAmw?v=1769184328-2B4JGHe8M6T77DllMcDyrMOo4S6vgmltmJIbmkyAMBc%3D"
+OFFICE_APPS=(
+    "Microsoft Word"
+    "Microsoft Excel"
+    "Microsoft PowerPoint"
+    "Microsoft Outlook"
+    "Microsoft OneNote"
+    "Microsoft OneDrive"
+    "Microsoft Teams"
+    "Microsoft Defender"
+)
+OFFICE_PARTIAL_APPS=("Microsoft Word" "Microsoft Excel" "Microsoft PowerPoint")
 
 choose_installation() {
     printf "choose what to install:\n"
     printf "1) Microsoft Office Suite\n"
-    printf "2) Microsoft Office (Word, Excel, Powerpoint) Only\n"
+    printf "2) Core Microsoft Office (Word, Excel, Powerpoint)\n"
     printf "Enter your choice (1 or 2): "
 
     read -r CHOICE
@@ -87,11 +98,6 @@ installOffice() {
         exit 1
     fi
 
-    if command_exists "Microsoft Word"; then
-        printf "Microsoft Office is already installed. Skipping installation.\n"
-        exit 0
-    fi
-
     office_pkg="$TEMP_DIR/office.pkg"
     serializer_pkg="$TEMP_DIR/serializer.pkg"
 
@@ -143,11 +149,41 @@ install_components() {
     choose_installation
 
     if [ "$FULL_OFFICE" -eq 1 ]; then
-        installOffice ""
+        all_installed=true
+        for app in "${OFFICE_APPS[@]}"; do
+            if ! command_exists "$app"; then
+                all_installed=false
+                break
+            fi
+        done
+
+        if [ "$all_installed" = true ]; then
+            printf "Full Office suite already installed. Skipping.\n"
+            exit 0
+        else
+            printf "Installing full Office suite...\n"
+            installOffice ""
+        fi
     fi
+
     if [ "$PARTIAL_OFFICE" -eq 1 ]; then
-        installOffice "$choices_file"
+        all_installed=true
+        for app in "${OFFICE_PARTIAL_APPS[@]}"; do
+            if ! command_exists "$app"; then
+                all_installed=false
+                break
+            fi
+        done
+
+        if [ "$all_installed" = true ]; then
+            printf "Core Office apps already installed. Skipping.\n"
+            exit 0
+        else
+            printf "Installing core Office apps...\n"
+            installOffice "$choices_file"
+        fi
     fi
+
 }
 
 install_components
