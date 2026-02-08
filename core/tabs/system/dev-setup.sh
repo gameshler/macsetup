@@ -35,13 +35,13 @@ setupZshConfig() {
 }
 
 installNvm() {
-    if command_exists "nvm"; then
-        printf "nvm is installed"
+    if ! command_exists "nvm"; then 
+     printf "Installing NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
         nvm install 25
         nvm use stable
-    else
-        printf "Installing NVM..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+    else 
+     printf "nvm is installed"
         nvm install 25
         nvm use stable
     fi
