@@ -49,8 +49,12 @@ installNvm() {
 
 installNpmDepend() {
     DEPENDENCIES='lite-server http-server license gitignore'
+    if ! command_exists "pnpm"; then
+    curl -fsSL https://get.pnpm.io/install.sh | sh -
+    fi
+    source ~/.zshrc
     printf "installing dependencies"
-    npm install $DEPENDENCIES
+    pnpm install $DEPENDENCIES
 }
 
 installCasks() {
