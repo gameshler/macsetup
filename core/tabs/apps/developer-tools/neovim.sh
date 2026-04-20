@@ -13,9 +13,9 @@ cloneNeovim() {
 }
 
 installNeovim() {
-    if ! brew_program_exists neovim ripgrep; then
+    if ! brew_program_exists neovim ripgrep git fzf lua; then
         printf "Installing Neovim..."
-        brew install neovim ripgrep shellcheck
+        brew install neovim ripgrep shellcheck fzf luarocks git
         if [ $? -ne 0 ]; then
             printf "Failed to install Neovim. Please check your Homebrew installation."
             exit 1
