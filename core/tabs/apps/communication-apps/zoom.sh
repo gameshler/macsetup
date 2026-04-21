@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installZoom() {
+install_zoom() {
     if ! brew_program_exists zoom; then
         printf "Installing Zoom..."
         brew install --cask zoom
@@ -17,4 +17,4 @@ installZoom() {
 }
 
 checkPackageManager
-installZoom
+install_zoom

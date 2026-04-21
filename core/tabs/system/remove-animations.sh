@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-removeAnimations() {
+remove_animations() {
     printf "Reducing motion and animations on macOS..."
 
     # Reduce motion in Accessibility settings (most effective)
@@ -63,4 +63,4 @@ removeAnimations() {
 }
 
 checkPackageManager
-removeAnimations
+remove_animations

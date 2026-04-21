@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installGithubDesktop() {
+install_github_desktop() {
     if ! brew_program_exists github; then
         printf "Installing Github Desktop..."
         brew install --cask github
@@ -17,4 +17,4 @@ installGithubDesktop() {
 }
 
 checkPackageManager
-installGithubDesktop
+install_github_desktopl

@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installChrome() {
+install_chrome() {
     if ! brew_program_exists google-chrome; then
         printf "Installing Google Chrome..."
         brew install --cask google-chrome
@@ -17,4 +17,4 @@ installChrome() {
 }
 
 checkPackageManager
-installChrome
+install_chrome

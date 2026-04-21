@@ -2,8 +2,8 @@
 
 . "$COMMON_SCRIPT"
 
-OFFICE_PKG_URL="https://officecdnmac.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.105.26011018_BusinessPro_Installer.pkg"
-SERIALIZER_PKG_URL="https://trashbytes.net/dl/W1nDXBrtIJ72C7prwQ2geNwcz8aF5bhtPKkRSBWlh2BV_1MmH9uXKcACDwH1mMSu8HohphcINbjRzZxnqui-8PiDK6Sb-RcICv70i7PlmpP9hx3g0IlcfWSjZXxyjwnbMPMNBo8JeCRy22BOXhsAmw?v=1769184328-2B4JGHe8M6T77DllMcDyrMOo4S6vgmltmJIbmkyAMBc%3D"
+OFFICE_PKG_URL="https://res.public.onecdn.static.microsoft/mro1cdnstorage/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.108.26041219_BusinessPro_Installer.pkg"
+SERIALIZER_PKG_URL="https://fafda.to/d/ysb9003nnj0m?v=fnG4pexOF1_d4VhDd3uggm701KZWLd2LPLa-DdDS9DDw_4iYKb0P-yVJZ3-dBYjJ9tAlvh9zwbIaMtgKebIt0yAnStplukewHqqrAZzlqfat2xdstcmaR0yFri3tk7nxwvDzIPxBrxiiBii73upkZHzCW3YsZHdOKL69XawdAWSELvIwuvf1Xxaea_9ZnHlvlvn29Z0p3UF1t2jRZcG4oC6-bnYbkPAS9w"
 OFFICE_APPS=(
     "Microsoft Word"
     "Microsoft Excel"
@@ -89,7 +89,7 @@ EOF
         ;;
     esac
 }
-installOffice() {
+install_office() {
 
     local choices_xml="$1"
 
@@ -162,7 +162,7 @@ install_components() {
             exit 0
         else
             printf "Installing full Office suite...\n"
-            installOffice ""
+            install_office ""
         fi
     fi
 
@@ -180,7 +180,7 @@ install_components() {
             exit 0
         else
             printf "Installing core Office apps...\n"
-            installOffice "$choices_file"
+            install_office "$choices_file"
         fi
     fi
 

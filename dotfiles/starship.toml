@@ -1,0 +1,110 @@
+# ── Global ──────────────────────────────────────────────────────────────────────
+format = """
+[](#1a1a1a)\
+$python\
+$username\
+[](bg:#262626 fg:#1a1a1a)\
+$directory\
+[](fg:#262626 bg:#303030)\
+$git_branch\
+$git_status\
+[](fg:#303030 bg:#444444)\
+$c\
+$java\
+$nodejs\
+$rust\
+[](fg:#444444 bg:#005f87)\
+$docker_context\
+[](fg:#005f87 bg:#5f00af)\
+$time\
+[ ](fg:#5f00af)\
+"""
+
+# Right side: last command duration and exit status
+right_format = """
+$cmd_duration\
+$status\
+"""
+
+command_timeout = 1500
+add_newline = true
+
+# ── Username ───────────────────────────────────────────────────────────────────
+[username]
+show_always = true
+style_user = "bg:#1a1a1a"
+style_root = "bg:#1a1a1a"
+format = '[$user ]($style)'
+
+# ── Directory ──────────────────────────────────────────────────────────────────
+[directory]
+style = "bg:#262626"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+# ── Git ────────────────────────────────────────────────────────────────────────
+[git_branch]
+symbol = ""
+style = "fg:#e0e0e0 bg:#303030"
+format = "[ $symbol $branch ]($style)"
+
+[git_status]
+style = "fg:#b0b0b0 bg:#303030"
+format = "[$all_status$ahead_behind ]($style)"
+
+# ── Languages / runtimes ──────────────────────────────────────────────────────
+[c]
+symbol = " "
+style = "fg:#1b1f23 bg:#444444"
+format = "[ $symbol ($version) ]($style)"
+
+[java]
+symbol = " "
+style = "fg:#1b1f23 bg:#444444"
+format = "[ $symbol ($version) ]($style)"
+
+[nodejs]
+symbol = ""
+style = "fg:#1b1f23 bg:#444444"
+format = "[ $symbol ($version) ]($style)"
+
+[rust]
+symbol = ""
+style = "fg:#1b1f23 bg:#444444"
+format = "[ $symbol ($version) ]($style)"
+
+[python]
+style = "bg:#1a1a1a"
+format = "[(\\($virtualenv\\) )]($style)"
+
+# ── Docker ─────────────────────────────────────────────────────────────────────
+[docker_context]
+symbol = " "
+style = "fg:#ffffff bg:#005f87"
+format = "[ $symbol $context ]($style)"
+
+# ── Time / duration / status ──────────────────────────────────────────────────
+[time]
+disabled = false
+time_format = "%R"
+style = "fg:#ffffff bg:#5f00af"
+format = "[ $time ]($style)"
+
+[cmd_duration]
+min_time = 500
+format = "[$duration]($style) "
+style = "fg:#aaaaaa"
+
+[status]
+disabled = false
+symbol = "✘"
+success_symbol = ""
+format = "[$symbol]($style) "
+style = "fg:#ff5f5f"

@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installSublime() {
+install_sublime() {
     if ! brew_program_exists sublime-text; then
         printf "Installing Sublime..."
         brew install --cask sublime-text
@@ -17,4 +17,4 @@ installSublime() {
 }
 
 checkPackageManager
-installSublime
+install_sublime

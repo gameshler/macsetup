@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installDiscord() {
+install_discord() {
     if ! brew_program_exists discord; then
         printf "Installing Discord..."
         brew install --cask discord
@@ -17,4 +17,4 @@ installDiscord() {
 }
 
 checkPackageManager
-installDiscord
+install_discord

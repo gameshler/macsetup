@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-fixfinder () {
+fix_finder () {
     printf "Applying global theme settings for Finder..."
 
     # Set the default Finder view to list view
@@ -63,4 +63,4 @@ fixfinder () {
 }
 
 checkPackageManager
-fixfinder
+fix_finder

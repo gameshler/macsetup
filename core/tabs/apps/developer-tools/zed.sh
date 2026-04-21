@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installZed() {
+install_zed() {
     if ! brew_program_exists zed; then
         printf "Installing Zed..."
         brew install --cask zed
@@ -17,4 +17,4 @@ installZed() {
 }
 
 checkPackageManager
-installZed
+install_zed

@@ -1,17 +1,16 @@
-#!/bin/zsh -e
+#!/bin/sh -e
 
 . "$COMMON_SCRIPT"
 
-installDepend() {
+install_depend() {
     DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr'
     printf "Installing dependencies..."
     brew install $DEPENDENCIES
 }
 
-setupZshConfig() {
-    printf "Setting up Zsh Configuration..."
+setup_config() {
 
-    dotfiles=(.gitconfig .zshrc)
+    dotfiles=(.gitconfig .gitignore)
 
     for dotfile in "${dotfiles[@]}"; do
         src="$DOT_FILES/$dotfile"
@@ -23,49 +22,43 @@ setupZshConfig() {
         fi
     done
 
-    source ~/.zshrc
 
-    if [ ! -f "$HOME/.zshrc" ]; then
-        printf "Zsh configuration file not found!"
-        exit 1
-    fi
-
-    printf "Zsh configuration has been set up successfully. Restart Shell."
+    . ~/.zshrc 
 
 }
 
-installNvm() {
-    if ! command_exists "nvm"; then 
-     printf "Installing NVM..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+install_nvm() {
+    if ! command_exists "nvm"; then
+        printf "Installing NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
         nvm install 25
         nvm use stable
-    else 
-     printf "nvm is installed"
+    else
+        printf "nvm is installed"
         nvm install 25
         nvm use stable
     fi
 }
 
-installNpmDepend() {
+install_npm_depend() {
     DEPENDENCIES='lite-server http-server license gitignore'
     if ! command_exists "pnpm"; then
-    curl -fsSL https://get.pnpm.io/install.sh | sh -
+        curl -fsSL https://get.pnpm.io/install.sh | sh -
     fi
-    source ~/.zshrc
+    . ~/.zshrc 
     printf "installing dependencies"
     pnpm install $DEPENDENCIES
 }
 
-installCasks() {
-    CASKS='iterm2 alfred rectangle alt-tab keka docker'
+install_casks() {
+    CASKS='ghostty alfred rectangle alt-tab keka docker'
     printf "Installing casks..."
     brew install --cask $CASKS
 }
 
 checkPackageManager
-installDepend
-setupZshConfig
-installNvm
-installNpmDepend
-installCasks
+install_depend
+setup_config
+install_nvm
+install_npm_depend
+install_casks

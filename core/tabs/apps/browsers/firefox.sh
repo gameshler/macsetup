@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installFirefox() {
+install_firefox() {
     if ! brew_program_exists firefox; then
         printf "Installing Mozilla Firefox..."
         brew install --cask firefox
@@ -17,4 +17,4 @@ installFirefox() {
 }
 
 checkPackageManager
-installFirefox
+install_firefox

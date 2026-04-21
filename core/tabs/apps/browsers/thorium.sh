@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installThorium() {
+install_thorium() {
     if ! brew_program_exists alex313031-thorium; then
         printf "Installing Thorium..."
         brew install --cask alex313031-thorium
@@ -17,4 +17,4 @@ installThorium() {
 }
 
 checkPackageManager
-installThorium
+install_thorium

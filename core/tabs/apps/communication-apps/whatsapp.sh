@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installWhatsApp() {
+install_whatsapp() {
     if ! brew_program_exists whatsapp; then
         printf "Installing WhatsApp..."
         brew install --cask whatsapp
@@ -17,4 +17,4 @@ installWhatsApp() {
 }
 
 checkPackageManager
-installWhatsApp
+install_whatsapp

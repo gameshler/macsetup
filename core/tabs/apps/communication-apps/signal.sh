@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installSignal() {
+install_signal() {
     if ! brew_program_exists signal; then
         printf "Installing Signal..."
         brew install --cask signal
@@ -17,4 +17,4 @@ installSignal() {
 }
 
 checkPackageManager
-installSignal
+install_signal

@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installVsCode() {
+install_vscode() {
     if ! brew_program_exists visual-studio-code; then
         printf "Installing VS Code..."
         brew install --cask visual-studio-code
@@ -17,4 +17,4 @@ installVsCode() {
 }
 
 checkPackageManager
-installVsCode
+install_vscode

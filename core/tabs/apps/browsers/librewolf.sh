@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installLibreWolf() {
+install_librewolf() {
     if ! brew_program_exists librewolf; then
         printf "Installing LibreWolf..."
         brew install --cask librewolf --no-quarantine
@@ -17,4 +17,4 @@ installLibreWolf() {
 }
 
 checkPackageManager
-installLibreWolf
+install_librewolf

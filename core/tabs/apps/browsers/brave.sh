@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installBrave() {
+install_brave() {
     if ! brew_program_exists brave-browser; then
         printf "Installing Brave..."
         brew install --cask brave-browser
@@ -17,4 +17,4 @@ installBrave() {
 }
 
 checkPackageManager
-installBrave
+install_brave

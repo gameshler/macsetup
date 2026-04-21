@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installTelegram() {
+install_telegram() {
     if ! brew_program_exists telegram-desktop; then
         printf "Installing Telegram..."
         brew install --cask telegram-desktop
@@ -17,4 +17,4 @@ installTelegram() {
 }
 
 checkPackageManager
-installTelegram
+install_telegram

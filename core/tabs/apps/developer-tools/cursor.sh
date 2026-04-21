@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installCursor() {
+install_cursor() {
     if ! brew_program_exists cursor; then
         printf "Installing Cursor..."
         brew install --cask cursor
@@ -17,4 +17,4 @@ installCursor() {
 }
 
 checkPackageManager
-installCursor
+install_cursor

@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-installSlack() {
+install_slack() {
     if ! brew_program_exists slack; then
         printf "Installing Slack..."
         brew install --cask slack
@@ -17,4 +17,4 @@ installSlack() {
 }
 
 checkPackageManager
-installSlack
+install_slack

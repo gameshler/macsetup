@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-cloneNeovim() {
+clone_neovim() {
     if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
         printf "Missing or Invalid Temp Directory\n" >&2
         exit 1
@@ -12,7 +12,7 @@ cloneNeovim() {
 
 }
 
-installNeovim() {
+install_neovim() {
     if ! brew_program_exists neovim ripgrep git fzf lua; then
         printf "Installing Neovim..."
         brew install neovim ripgrep shellcheck fzf luarocks git
@@ -26,7 +26,7 @@ installNeovim() {
     fi
 }
 
-linkNeovimConfig() {
+link_neovim_config() {
     printf "Linking Neovim Configuration Files..."
     mkdir -p "$HOME/.config/nvim"
     cp -r "$TEMP_DIR/neovim/lua" "$HOME/.config/nvim/"
@@ -36,6 +36,6 @@ linkNeovimConfig() {
 }
 
 checkPackageManager
-installNeovim
-cloneNeovim
-linkNeovimConfig
+install_neovim
+clone_neovim
+link_neovim_config
