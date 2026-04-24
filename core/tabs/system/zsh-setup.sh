@@ -3,7 +3,7 @@
 . "$COMMON_SCRIPT"
 
 install_depend() {
-    DEPENDENCIES="bat tree multitail fastfetch unzip fontconfig starship fzf"
+    DEPENDENCIES="zsh-autocomplete bat tree multitail fastfetch unzip fontconfig starship fzf"
     for pkg in $DEPENDENCIES; do
         if ! brew_program_exists "$pkg"; then
             printf "%b\n" "Installing $pkg...."
@@ -14,6 +14,7 @@ install_depend() {
             exit 1
         fi
     done
+    
     FONT="font-fira-code-nerd-font"
 
     if ! brew_program_exists "$FONT"; then
