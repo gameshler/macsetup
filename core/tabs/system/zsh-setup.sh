@@ -3,7 +3,7 @@
 . "$COMMON_SCRIPT"
 
 install_depend() {
-    DEPENDENCIES="zsh-autocomplete bat tree multitail fastfetch unzip fontconfig starship fzf"
+    DEPENDENCIES="bat tree multitail fastfetch unzip fontconfig starship fzf"
     for pkg in $DEPENDENCIES; do
         if ! brew_program_exists "$pkg"; then
             printf "%b\n" "Installing $pkg...."
