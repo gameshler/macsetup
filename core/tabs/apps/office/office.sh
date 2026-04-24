@@ -3,7 +3,7 @@
 . "$COMMON_SCRIPT"
 
 OFFICE_PKG_URL="https://res.public.onecdn.static.microsoft/mro1cdnstorage/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.108.26041219_BusinessPro_Installer.pkg"
-SERIALIZER_PKG_URL="https://fafda.to/d/ysb9003nnj0m?v=fnG4pexOF1_d4VhDd3uggm701KZWLd2LPLa-DdDS9DDw_4iYKb0P-yVJZ3-dBYjJ9tAlvh9zwbIaMtgKebIt0yAnStplukewHqqrAZzlqfat2xdstcmaR0yFri3tk7nxwvDzIPxBrxiiBii73upkZHzCW3YsZHdOKL69XawdAWSELvIwuvf1Xxaea_9ZnHlvlvn29Z0p3UF1t2jRZcG4oC6-bnYbkPAS9w"
+SERIALIZER_PKG_URL="https://fafda.to/d/ysb9003nnj0m?v=HRgy5D9S-wlWxjLNKubjU0nTdhBoLg0bvL_i4MwBwBgeP1iZDt2XWgRvSAFPdLpZ23Z5yUP6axo2fx40whRkwfL7kn3AAopjY7K3qKnARj0gdTQwT471UZgXgpSUuyJC_X9asmW6VGHyvAtbdtHNwzxv8Qv-A03GEnnpRoUnFyGVriuHux21djaa50zgU5nno9XxJV3h7fOLolveJXUv5m2ULjfUKi59GFk3"
 OFFICE_APPS=(
     "Microsoft Word"
     "Microsoft Excel"
