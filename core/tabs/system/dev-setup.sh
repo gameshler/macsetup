@@ -1,11 +1,14 @@
-#!/bin/sh -e
+#!/usr/bin/env/sh -e
 
 . "$COMMON_SCRIPT"
 
 install_depend() {
     DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr'
     printf "Installing dependencies..."
-    brew install $DEPENDENCIES
+    for pkg in $DEPENDENCIES; do
+        install_package "$pkg"
+    done
+
 }
 
 setup_config() {
@@ -22,8 +25,7 @@ setup_config() {
         fi
     done
 
-
-    . ~/.zshrc 
+    . ~/.zshrc
 
 }
 
@@ -51,13 +53,13 @@ install_npm_depend() {
         curl -fsSL https://get.pnpm.io/install.sh | sh -
 
         export PNPM_HOME="/Users/$USER/Library/pnpm"
-        case ":$PATH:" in 
-            *":$PNPM_HOME:"*) ;;
-            *) export PATH="$PNPM_HOME:$PATH" ;;
+        case ":$PATH:" in
+        *":$PNPM_HOME:"*) ;;
+        *) export PATH="$PNPM_HOME:$PATH" ;;
         esac
 
     fi
-    . ~/.zshrc 
+    . ~/.zshrc
     printf "installing dependencies"
     pnpm install $DEPENDENCIES
 }
@@ -65,12 +67,14 @@ install_npm_depend() {
 install_casks() {
     CASKS='ghostty alfred rectangle alt-tab keka docker'
     printf "Installing casks..."
-    brew install --cask $CASKS
+    for pkg in $CASKS; do
+        install_cask "$pkg"
+    done
 
     CONFIG="$HOME/Library/Application\ Support/com.mitchellh.ghostty/"
 
-    if [ -f "$CONFIG" ]; then 
-       cp "$DOT_FILES/config" "$CONFIG" 
+    if [ -f "$CONFIG" ]; then
+        cp "$DOT_FILES/config" "$CONFIG"
     fi
 
 }

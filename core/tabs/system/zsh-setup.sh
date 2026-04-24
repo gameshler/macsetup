@@ -3,42 +3,6 @@ set -e
 
 . "$COMMON_SCRIPT"
 
-install_package() {
-    pkg="$1"
-
-    if brew_program_exists "$pkg"; then
-        printf "%b\n" "$pkg is already installed. Skipping."
-        return 0
-    fi
-
-    printf "%b\n" "Installing $pkg..."
-
-    if brew install "$pkg"; then
-        printf "%b\n" "$pkg installed successfully!"
-    else
-        printf "%b\n" "Failed to install $pkg."
-        exit 1
-    fi
-}
-
-install_cask() {
-    pkg="$1"
-
-    if brew_program_exists "$pkg"; then
-        printf "%b\n" "$pkg is already installed. Skipping."
-        return 0
-    fi
-
-    printf "%b\n" "Installing cask $pkg..."
-
-    if brew install --cask "$pkg"; then
-        printf "%b\n" "$pkg installed successfully!"
-    else
-        printf "%b\n" "Failed to install cask $pkg."
-        exit 1
-    fi
-}
-
 backup_config() {
     printf "%b\n" "Backing up existing Zsh configuration..."
 
