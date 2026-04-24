@@ -26,7 +26,7 @@ checkPackageManager() {
     else
         printf "Homebrew is not installed"
         printf "Installing Homebrew..."
-        sudo -A /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         install_result=$?
 
         if [ $install_result -ne 0 ]; then
