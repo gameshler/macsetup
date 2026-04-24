@@ -48,7 +48,6 @@ install_nvm() {
 }
 
 install_npm_depend() {
-    DEPENDENCIES='lite-server http-server license gitignore'
     if ! command_exists "pnpm"; then
         curl -fsSL https://get.pnpm.io/install.sh | sh -
 
@@ -60,8 +59,6 @@ install_npm_depend() {
 
     fi
     . ~/.zshrc
-    printf "installing dependencies"
-    pnpm install $DEPENDENCIES
 }
 
 install_casks() {
