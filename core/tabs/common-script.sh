@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/zsh -e
 
 command_exists() {
     for cmd in "$@"; do
