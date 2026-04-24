@@ -35,7 +35,6 @@ link_neovim_config() {
 
 }
 
-checkPackageManager
 install_neovim
 clone_neovim
 link_neovim_config

@@ -16,5 +16,4 @@ install_cursor() {
     fi
 }
 
-checkPackageManager
 install_cursor

@@ -16,5 +16,4 @@ install_discord() {
     fi
 }
 
-checkPackageManager
 install_discord

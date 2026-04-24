@@ -16,5 +16,4 @@ install_zed() {
     fi
 }
 
-checkPackageManager
 install_zed

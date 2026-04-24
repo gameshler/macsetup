@@ -16,5 +16,4 @@ install_github_desktop() {
     fi
 }
 
-checkPackageManager
-install_github_desktopl
+install_github_desktop

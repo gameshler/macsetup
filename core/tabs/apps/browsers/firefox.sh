@@ -16,5 +16,4 @@ install_firefox() {
     fi
 }
 
-checkPackageManager
 install_firefox

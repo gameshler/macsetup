@@ -31,6 +31,11 @@ install_nvm() {
     if ! command_exists "nvm"; then
         printf "Installing NVM..."
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
         nvm install 25
         nvm use stable
     else
@@ -44,6 +49,13 @@ install_npm_depend() {
     DEPENDENCIES='lite-server http-server license gitignore'
     if ! command_exists "pnpm"; then
         curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+        export PNPM_HOME="/Users/$USER/Library/pnpm"
+        case ":$PATH:" in 
+            *":$PNPM_HOME:"*) ;;
+            *) export PATH="$PNPM_HOME:$PATH" ;;
+        esac
+
     fi
     . ~/.zshrc 
     printf "installing dependencies"
@@ -54,9 +66,15 @@ install_casks() {
     CASKS='ghostty alfred rectangle alt-tab keka docker'
     printf "Installing casks..."
     brew install --cask $CASKS
+
+    CONFIG="$HOME/Library/Application\ Support/com.mitchellh.ghostty/"
+
+    if [ -f "$CONFIG" ]; then 
+       cp "$DOT_FILES/config" "$CONFIG" 
+    fi
+
 }
 
-checkPackageManager
 install_depend
 setup_config
 install_nvm

@@ -16,5 +16,4 @@ install_slack() {
     fi
 }
 
-checkPackageManager
 install_slack

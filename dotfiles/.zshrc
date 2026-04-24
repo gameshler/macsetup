@@ -2,27 +2,13 @@ HISTFILE=~/.config/zsh/.histfile
 HISTSIZE=500
 SAVEHIST=10000
 
-setopt APPEND_HISTORY
-setopt SHARE_HISTORY
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_REDUCE_BLANKS
-setopt EXTENDED_HISTORY
-
-setopt NO_BEEP
+setopt autocd extendedglob
+unsetopt beep
+bindkey -v
 
 [[ -o interactive ]] && stty -ixon
 
-setopt AUTO_CD
-setopt CORRECT
-
-autoload -Uz compinit
-compinit
 source /opt/homebrew/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-
-zstyle ':completion:*' menu select
 
 export EDITOR="nvim"
 export VISUAL="nvim"

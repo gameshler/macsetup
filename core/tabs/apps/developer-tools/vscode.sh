@@ -16,5 +16,4 @@ install_vscode() {
     fi
 }
 
-checkPackageManager
 install_vscode

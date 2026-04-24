@@ -71,7 +71,6 @@ backup_config(){
     fi
 }
 
-checkPackageManager
 backup_config
 install_depend
 setup_zsh

@@ -16,5 +16,4 @@ install_chrome() {
     fi
 }
 
-checkPackageManager
 install_chrome

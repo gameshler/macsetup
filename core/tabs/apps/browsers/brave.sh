@@ -16,5 +16,4 @@ install_brave() {
     fi
 }
 
-checkPackageManager
 install_brave

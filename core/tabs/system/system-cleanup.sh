@@ -23,5 +23,4 @@ cleanup_system() {
 
 }
 
-checkPackageManager
 cleanup_system

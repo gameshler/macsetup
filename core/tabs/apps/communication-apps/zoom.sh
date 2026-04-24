@@ -16,5 +16,4 @@ install_zoom() {
     fi
 }
 
-checkPackageManager
 install_zoom

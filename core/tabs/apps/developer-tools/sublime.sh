@@ -16,5 +16,4 @@ install_sublime() {
     fi
 }
 
-checkPackageManager
 install_sublime

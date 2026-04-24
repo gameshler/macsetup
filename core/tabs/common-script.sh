@@ -92,3 +92,5 @@ get_file_from_web() {
 
     return $rc
 }
+
+checkPackageManager

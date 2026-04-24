@@ -16,5 +16,4 @@ install_telegram() {
     fi
 }
 
-checkPackageManager
 install_telegram

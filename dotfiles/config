@@ -1,0 +1,15 @@
+theme = Monokai Remastered
+window-theme = ghostty
+
+window-height = 35
+window-width = 100
+
+background-opacity = 0.95
+
+font-family = FiraCode Nerd Font
+font-family-bold = FiraCode Nerd Font
+font-family-italic = FiraCode Nerd Font
+font-family-bold-italic = FiraCode Nerd Font
+font-size = 14
+
+confirm-close-surface = false

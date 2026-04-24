@@ -16,5 +16,4 @@ install_thorium() {
     fi
 }
 
-checkPackageManager
 install_thorium

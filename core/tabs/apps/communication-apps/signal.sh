@@ -16,5 +16,4 @@ install_signal() {
     fi
 }
 
-checkPackageManager
 install_signal

@@ -16,5 +16,4 @@ install_whatsapp() {
     fi
 }
 
-checkPackageManager
 install_whatsapp

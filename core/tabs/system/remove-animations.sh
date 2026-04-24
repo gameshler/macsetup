@@ -62,5 +62,4 @@ remove_animations() {
     printf "Dock Restarted."
 }
 
-checkPackageManager
 remove_animations

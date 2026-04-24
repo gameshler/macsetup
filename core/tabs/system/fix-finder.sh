@@ -62,5 +62,4 @@ fix_finder () {
     sudo killall Finder
 }
 
-checkPackageManager
 fix_finder
