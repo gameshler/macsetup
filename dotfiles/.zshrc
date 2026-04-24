@@ -8,7 +8,7 @@ bindkey -v
 
 [[ -o interactive ]] && stty -ixon
 
-source /opt/homebrew/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
 export EDITOR="nvim"
 export VISUAL="nvim"
