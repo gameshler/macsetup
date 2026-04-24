@@ -1,75 +1,98 @@
-#!/bin/sh -e
+#!/bin/sh
+set -e
 
 . "$COMMON_SCRIPT"
 
-install_depend() {
-    DEPENDENCIES="zsh-autocomplete bat tree multitail fastfetch unzip fontconfig starship fzf"
-    for pkg in $DEPENDENCIES; do
-        if ! brew_program_exists "$pkg"; then
-            printf "%b\n" "Installing $pkg...."
-            brew install "$pkg"
-            printf "%b\n" "$pkg installed successfully!"
-        else
-            printf "%b\n" "Failed to install $pkg. Please check your Homebrew installation."
-            exit 1
-        fi
-    done
-    
-    FONT="font-fira-code-nerd-font"
+install_package() {
+    pkg="$1"
 
-    if ! brew_program_exists "$FONT"; then
-        printf "%b\n" "Installing $FONT...."
-        brew install --cask "$FONT"
-        printf "%b\n" "$FONT installed successfully!"
+    if brew_program_exists "$pkg"; then
+        printf "%b\n" "$pkg is already installed. Skipping."
+        return 0
+    fi
+
+    printf "%b\n" "Installing $pkg..."
+
+    if brew install "$pkg"; then
+        printf "%b\n" "$pkg installed successfully!"
     else
-        printf "%b\n" "Failed to install $FONT. Please check your Homebrew installation."
+        printf "%b\n" "Failed to install $pkg."
         exit 1
-    fi
-
-    if [ -e ~/.fzf/install ]; then
-        ~/.fzf/install --all
     fi
 }
 
-setup_zsh(){
-    printf "%b\n" "Setting up Zsh configuration...."
+install_cask() {
+    pkg="$1"
 
-    dotfiles=(starship.toml .zshrc)
-
-    for dotfile in "${dotfiles[@]}"; do
-        src="$DOT_FILES/$dotfile"
-        dest="$HOME/$dotfile"
-        if [ -f "$src" ]; then
-            cp "$src" "$dest"
-        else
-            echo "Warning: $src not found, skipping."
-        fi
-    done
-
-    if [ ! -f "$HOME/.zshrc" ]; then
-        printf "Zsh configuration file not found!"
-        exit 1
+    if brew_program_exists "$pkg"; then
+        printf "%b\n" "$pkg is already installed. Skipping."
+        return 0
     fi
 
-    . ~/.zshrc
+    printf "%b\n" "Installing cask $pkg..."
 
-
-    printf "Zsh configuration has been set up successfully. Restart Shell."
+    if brew install --cask "$pkg"; then
+        printf "%b\n" "$pkg installed successfully!"
+    else
+        printf "%b\n" "Failed to install cask $pkg."
+        exit 1
+    fi
 }
 
-backup_config(){
-
+backup_config() {
     printf "%b\n" "Backing up existing Zsh configuration..."
 
     if [ -f "$HOME/.zshrc" ] && [ ! -f "$HOME/.zshrc.bak" ]; then
         cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
-        printf "%b\n" "Existing .zshrc backed up to .zshrc.bak."
+        printf "%b\n" "Backed up ~/.zshrc to ~/.zshrc.bak"
     fi
 
     if [ -d "$HOME/.config/zsh" ] && [ ! -d "$HOME/.config/zsh.bak" ]; then
         cp -r "$HOME/.config/zsh" "$HOME/.config/zsh.bak"
-        printf "%b\n" "Existing Zsh config backed up to .config/zsh.bak."
+        printf "%b\n" "Backed up ~/.config/zsh to ~/.config/zsh.bak"
     fi
+}
+
+install_depend() {
+    printf "%b\n" "Installing dependencies..."
+
+    DEPENDENCIES="zsh-autocomplete bat tree multitail fastfetch unzip fontconfig starship fzf"
+
+    for pkg in $DEPENDENCIES; do
+        install_package "$pkg"
+    done
+
+    install_cask "font-fira-code-nerd-font"
+
+    if [ -f "$HOME/.fzf/install" ]; then
+        "$HOME/.fzf/install" --all
+    fi
+}
+
+setup_zsh() {
+    printf "%b\n" "Setting up Zsh configuration..."
+
+    mkdir -p "$HOME/.config"
+
+    if [ -f "$DOT_FILES/starship.toml" ]; then
+        cp "$DOT_FILES/starship.toml" "$HOME/.config/starship.toml"
+        printf "%b\n" "Installed starship config."
+    else
+        printf "%b\n" "Warning: starship.toml not found, skipping."
+    fi
+
+    if [ -f "$DOT_FILES/.zshrc" ]; then
+        cp "$DOT_FILES/.zshrc" "$HOME/.zshrc"
+        printf "%b\n" "Installed .zshrc"
+    else
+        printf "%b\n" "Error: .zshrc not found in $DOT_FILES"
+        exit 1
+    fi
+
+    printf "%b\n" ""
+    printf "%b\n" "Zsh configuration complete."
+    printf "%b\n" "Restart your shell or run:"
+    printf "%b\n" "source ~/.zshrc"
 }
 
 backup_config
