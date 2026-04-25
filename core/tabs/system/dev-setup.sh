@@ -4,7 +4,7 @@
 
 install_depend() {
     DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr'
-    printf "Installing dependencies..."
+    printf "%b\n" "Installing dependencies..."
     for pkg in $DEPENDENCIES; do
         install_package "$pkg"
     done
@@ -31,7 +31,7 @@ setup_config() {
 
 install_nvm() {
     if ! command_exists "nvm"; then
-        printf "Installing NVM..."
+        printf "%b\n" "Installing NVM..."
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 
         export NVM_DIR="$HOME/.nvm"
@@ -41,7 +41,7 @@ install_nvm() {
         nvm install 25
         nvm use stable
     else
-        printf "nvm is installed"
+        printf "%b\n" "nvm is installed"
         nvm install 25
         nvm use stable
     fi
@@ -63,7 +63,7 @@ install_npm_depend() {
 
 install_casks() {
     CASKS='ghostty alfred rectangle alt-tab keka docker'
-    printf "Installing casks..."
+    printf "%b\n" "Installing casks..."
     for pkg in $CASKS; do
         install_cask "$pkg"
     done

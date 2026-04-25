@@ -17,10 +17,10 @@ OFFICE_APPS=(
 OFFICE_PARTIAL_APPS=("Microsoft Word" "Microsoft Excel" "Microsoft PowerPoint")
 
 choose_installation() {
-    printf "choose what to install:\n"
-    printf "1) Microsoft Office Suite\n"
-    printf "2) Core Microsoft Office (Word, Excel, Powerpoint)\n"
-    printf "Enter your choice (1 or 2): "
+    printf "%b\n" "choose what to install:\n"
+    printf "%b\n" "1) Microsoft Office Suite\n"
+    printf "%b\n" "2) Core Microsoft Office (Word, Excel, Powerpoint)\n"
+    printf "%b\n" "Enter your choice (1 or 2): "
 
     read -r CHOICE
 
@@ -84,7 +84,7 @@ choose_installation() {
 EOF
         ;;
     *)
-        printf "Invalid choice. Please enter 1 or 2.\n" >&2
+        printf "%b\n" "Invalid choice. Please enter 1 or 2.\n" >&2
         exit 1
         ;;
     esac
@@ -94,52 +94,52 @@ install_office() {
     local choices_xml="$1"
 
     if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
-        printf "Missing or Invalid Temp Directory\n" >&2
+        printf "%b\n" "Missing or Invalid Temp Directory\n" >&2
         exit 1
     fi
 
     office_pkg="$TEMP_DIR/office.pkg"
     serializer_pkg="$TEMP_DIR/serializer.pkg"
 
-    printf "Downloading Office package to %s...\n" "$office_pkg"
+    printf "%b\n" "Downloading Office package to %s...\n" "$office_pkg"
     if ! get_file_from_web "$OFFICE_PKG_URL" "$office_pkg"; then
-        printf "Office download failed.\n" >&2
+        printf "%b\n" "Office download failed.\n" >&2
         exit 1
     fi
 
-    printf "Installing Office package...\n"
+    printf "%b\n" "Installing Office package...\n"
     if command_exists installer; then
         if [ -n "$choices_xml" ] && [ -f "$choices_xml" ]; then
             sudo installer -applyChoiceChangesXML "$choices_xml" -pkg "$office_pkg" -target / || {
-                printf "Failed to install Office package with custom choices.\n" >&2
+                printf "%b\n" "Failed to install Office package with custom choices.\n" >&2
                 exit 1
             }
         else
             sudo installer -pkg "$office_pkg" -target / || {
-                printf "Failed to install Office package.\n" >&2
+                printf "%b\n" "Failed to install Office package.\n" >&2
                 exit 1
             }
         fi
     else
-        printf "installer command not found; please install manually: %s\n" "$office_pkg" >&2
+        printf "%b\n" "installer command not found; please install manually: %s\n" "$office_pkg" >&2
         exit 1
     fi
 
-    printf "Downloading serializer package to %s...\n" "$serializer_pkg"
+    printf "%b\n" "Downloading serializer package to %s...\n" "$serializer_pkg"
     if ! get_file_from_web "$SERIALIZER_PKG_URL" "$serializer_pkg"; then
-        printf "Serializer download failed.\n" >&2
+        printf "%b\n" "Serializer download failed.\n" >&2
         exit 1
     fi
 
-    printf "Installing serializer package...\n"
+    printf "%b\n" "Installing serializer package...\n"
     if command_exists installer; then
         sudo installer -pkg "$serializer_pkg" -target / || {
-            printf "Failed to install serializer package.\n" >&2
+            printf "%b\n" "Failed to install serializer package.\n" >&2
             exit 1
         }
     fi
 
-    printf "Office and serializer installed successfully.\n"
+    printf "%b\n" "Office and serializer installed successfully.\n"
 
     exit 0
 
@@ -158,10 +158,10 @@ install_components() {
         done
 
         if [ "$all_installed" = true ]; then
-            printf "Full Office suite already installed. Skipping.\n"
+            printf "%b\n" "Full Office suite already installed. Skipping.\n"
             exit 0
         else
-            printf "Installing full Office suite...\n"
+            printf "%b\n" "Installing full Office suite...\n"
             install_office ""
         fi
     fi
@@ -176,10 +176,10 @@ install_components() {
         done
 
         if [ "$all_installed" = true ]; then
-            printf "Core Office apps already installed. Skipping.\n"
+            printf "%b\n" "Core Office apps already installed. Skipping.\n"
             exit 0
         else
-            printf "Installing core Office apps...\n"
+            printf "%b\n" "Installing core Office apps...\n"
             install_office "$choices_file"
         fi
     fi

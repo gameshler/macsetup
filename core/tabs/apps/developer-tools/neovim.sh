@@ -4,7 +4,7 @@
 
 clone_neovim() {
     if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
-        printf "Missing or Invalid Temp Directory\n" >&2
+        printf "%b\n" "Missing or Invalid Temp Directory\n" >&2
         exit 1
     fi
 
@@ -14,20 +14,20 @@ clone_neovim() {
 
 install_neovim() {
     if ! brew_program_exists neovim ripgrep git fzf lua; then
-        printf "Installing Neovim..."
+        printf "%b\n" "Installing Neovim..."
         brew install neovim ripgrep shellcheck fzf luarocks git
         if [ $? -ne 0 ]; then
-            printf "Failed to install Neovim. Please check your Homebrew installation."
+            printf "%b\n" "Failed to install Neovim. Please check your Homebrew installation."
             exit 1
         fi
-        printf "Neovim installed successfully!"
+        printf "%b\n" "Neovim installed successfully!"
     else
-        printf "Neovim already installed."
+        printf "%b\n" "Neovim already installed."
     fi
 }
 
 link_neovim_config() {
-    printf "Linking Neovim Configuration Files..."
+    printf "%b\n" "Linking Neovim Configuration Files..."
     mkdir -p "$HOME/.config/nvim"
     cp -r "$TEMP_DIR/neovim/lua" "$HOME/.config/nvim/"
     cp -r "$TEMP_DIR/neovim/init.lua" "$HOME/.config/nvim/"

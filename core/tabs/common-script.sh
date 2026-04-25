@@ -22,15 +22,15 @@ brew_program_exists() {
 
 checkPackageManager() {
     if command_exists "brew"; then
-        printf "Homebrew is Installed"
+        printf "%b\n" "Homebrew is Installed"
     else
-        printf "Homebrew is not installed"
-        printf "Installing Homebrew..."
+        printf "%b\n" "Homebrew is not installed"
+        printf "%b\n" "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         install_result=$?
 
         if [ $install_result -ne 0 ]; then
-            printf "Failed to install Homebrew"
+            printf "%b\n" "Failed to install Homebrew"
             exit 1
         fi
 
@@ -85,7 +85,7 @@ get_file_from_web() {
     file="$2"
 
     if [ -z "$url" ] || [ -z "$file" ]; then
-        printf "Url or File does not exist\n" >&2
+        printf "%b\n" "Url or File does not exist\n" >&2
         return 2
     fi
 
@@ -98,13 +98,13 @@ get_file_from_web() {
     file_directory=$(dirname "$file")
     if [ ! -d "$file_directory" ]; then
         mkdir -p "$file_directory" || {
-            printf "Failed to create directory %s\n" "$file_directory" >&2
+            printf "%b\n" "Failed to create directory %s\n" "$file_directory" >&2
             return 1
         }
     fi
 
     if [ -z "${TEMP_DIR:-}" ] || [ ! -d "$TEMP_DIR" ]; then
-        printf "Missing or Invalid Temp Directory\n" >&2
+        printf "%b\n" "Missing or Invalid Temp Directory\n" >&2
         return 2
     fi
 
@@ -119,10 +119,10 @@ get_file_from_web() {
         else
             rc=$?
             rm -f "$tmpfile"
-            printf "Failed to download %s (curl rc=%d)\n" "$url" "$rc" >&2
+            printf "%b\n" "Failed to download %s (curl rc=%d)\n" "$url" "$rc" >&2
         fi
     else
-        printf "Error: curl is not installed.\n" >&2
+        printf "%b\n" "Error: curl is not installed.\n" >&2
         rc=1
     fi
 
