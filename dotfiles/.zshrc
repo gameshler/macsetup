@@ -61,7 +61,7 @@ alias gpsh='git push'
 alias gss='git status -s'
 alias gs='echo ""; echo "*********************************************"; echo -e "   DO NOT FORGET TO PULL BEFORE COMMITTING"; echo "*********************************************"; echo ""; git status'
 
-alias rmd='/bin/rm  --recursive --force --verbose '
+alias rmd='/bin/rm -rfv '
 
 alias ls='ls -aFGh'
 alias la='ls -Alh'
