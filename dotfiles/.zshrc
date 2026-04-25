@@ -1,7 +1,8 @@
-HISTFILE=~/.config/zsh/.histfile
-HISTSIZE=500
-SAVEHIST=10000
+HISTSIZE=100000
+SAVEHIST=100000
 
+setopt HIST_IGNORE_ALL_DUPS
+setopt SHARE_HISTORY         
 setopt autocd extendedglob
 unsetopt beep
 bindkey -v
@@ -73,7 +74,6 @@ alias lt='ls -ltrh'
 alias lr='ls -lR'
 alias lm='ls -alh | more'
 
-alias h='history | grep'
 alias p='ps aux | grep'
 alias f='find . | grep'
 
@@ -130,6 +130,16 @@ extract() {
 
 ftext() {
     grep -iIHrn --color=always "$1" . | less -R
+}
+
+# Search history
+
+h() {
+  if command -v fzf >/dev/null; then
+    history -n 1 | fzf --query="$1" --tiebreak=index
+  else
+    history 1 | grep -iE "$*"
+  fi
 }
 
 # Copy and go
