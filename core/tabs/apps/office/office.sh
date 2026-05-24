@@ -13,7 +13,6 @@ OFFICE_APPS=(
     "Microsoft OneDrive"
     "Microsoft Teams"
     "Microsoft Defender"
-    "Microsoft Copilot"
 )
 OFFICE_PARTIAL_APPS=("Microsoft Word" "Microsoft Excel" "Microsoft PowerPoint")
 
@@ -83,14 +82,6 @@ choose_installation() {
 <dict>
   <key>choiceIdentifier</key>
   <string>com.microsoft.teams2</string>
-  <key>choiceAttribute</key>
-  <string>selected</string>
-  <key>attributeSetting</key>
-  <integer>0</integer>
-</dict>
-<dict>
-  <key>choiceIdentifier</key>
-  <string>com.microsoft.copilot</string>
   <key>choiceAttribute</key>
   <string>selected</string>
   <key>attributeSetting</key>
