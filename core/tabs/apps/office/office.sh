@@ -13,7 +13,7 @@ OFFICE_APPS=(
     "Microsoft OneDrive"
     "Microsoft Teams"
     "Microsoft Defender"
-    "Microsoft 365 Copilot"
+    "Microsoft Copilot"
 )
 OFFICE_PARTIAL_APPS=("Microsoft Word" "Microsoft Excel" "Microsoft PowerPoint")
 
