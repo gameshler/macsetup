@@ -76,8 +76,19 @@ install_casks() {
 
 }
 
+install_claude() {
+     if ! command_exists "claude"; then
+         curl -fsSL https://claude.ai/install.sh | bash
+     else 
+         printf "%b\n" "claude is installed"
+         printf "%b\n" "Please run /login if not authenticated"
+     fi
+   
+}
+
 install_depend
 setup_config
 install_nvm
 install_npm_depend
 install_casks
+install_claude
