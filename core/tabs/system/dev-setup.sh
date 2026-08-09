@@ -3,7 +3,7 @@
 . "$COMMON_SCRIPT"
 
 install_depend() {
-    DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr'
+    DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr rust git'
     printf "%b\n" "Installing dependencies..."
     for pkg in $DEPENDENCIES; do
         install_package "$pkg"
