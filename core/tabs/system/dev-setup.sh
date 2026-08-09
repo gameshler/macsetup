@@ -62,7 +62,7 @@ install_npm_depend() {
 }
 
 install_casks() {
-    CASKS='ghostty alfred rectangle alt-tab keka docker'
+    CASKS='ghostty alfred rectangle alt-tab keka docker conductor'
     printf "%b\n" "Installing casks..."
     for pkg in $CASKS; do
         install_cask "$pkg"
