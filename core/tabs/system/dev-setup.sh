@@ -58,6 +58,8 @@ install_npm_depend() {
         esac
 
     fi
+    pnpm install -g bun 
+    
     . ~/.zshrc
 }
 
