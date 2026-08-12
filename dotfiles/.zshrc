@@ -16,6 +16,8 @@ export VISUAL="nvim"
 
 export CLICOLOR=1
 export LSCOLORS="ExFxCxDxBxegedabagacad"
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
 
 if command -v rg >/dev/null 2>&1; then
     alias grep='rg'
