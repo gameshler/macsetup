@@ -47,7 +47,7 @@ install_nvm() {
     fi
 }
 
-install_npm_depend() {
+install_pkg() {
     if ! command_exists "pnpm"; then
         curl -fsSL https://get.pnpm.io/install.sh | sh -
 
@@ -56,9 +56,15 @@ install_npm_depend() {
         *":$PNPM_HOME:"*) ;;
         *) export PATH="$PNPM_HOME:$PATH" ;;
         esac
-
+    else 
+        printf "%b\n" "pnpm is installed"
     fi
-    pnpm install -g bun 
+
+    if ! command_exists "bun"; then
+        curl -fsSL https://bun.sh/install | bash 
+    else
+        printf "%b\n" "bun is installed"
+    fi
     
     . ~/.zshrc
 }
