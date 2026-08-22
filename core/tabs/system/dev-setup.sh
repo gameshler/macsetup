@@ -98,6 +98,6 @@ install_claude() {
 install_depend
 setup_config
 install_nvm
-install_npm_depend
+install_pkg
 install_casks
 install_claude
