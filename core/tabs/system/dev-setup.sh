@@ -48,18 +48,7 @@ install_nvm() {
 }
 
 install_pkg() {
-    if ! command_exists "pnpm"; then
-        curl -fsSL https://get.pnpm.io/install.sh | sh -
-
-        export PNPM_HOME="/Users/$USER/Library/pnpm"
-        case ":$PATH:" in
-        *":$PNPM_HOME:"*) ;;
-        *) export PATH="$PNPM_HOME:$PATH" ;;
-        esac
-    else 
-        printf "%b\n" "pnpm is installed"
-    fi
-
+    
     if ! command_exists "bun"; then
         curl -fsSL https://bun.sh/install | bash 
     else
