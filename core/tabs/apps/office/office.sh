@@ -2,7 +2,7 @@
 
 . "$COMMON_SCRIPT"
 
-OFFICE_PKG_URL="https://res.public.onecdn.static.microsoft/mro1cdnstorage/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.109.26051717_BusinessPro_Installer.pkg"
+OFFICE_PKG_URL="https://res.public.onecdn.static.microsoft/mro1cdnstorage/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.112.26090911_BusinessPro_Installer.pkg"
 SERIALIZER_PKG_URL="https://fafda.to/d/ysb9003nnj0m?v=x4myjBmsht8NVq2n6QGvGeRpHkXdh3XdHnvANLygbibiqiHqTFOQb3kGbDhwxrk2C1anRyiU8or53hcrqOe3ze0EsICQe18Iui8bUGuNV8myg_hCQDcxi7SEt8ZwYwq-bHpy07QDU8VrA4cAcb63rFlH24XDUJkWv7PF0uMawjNID0uxoYw-eExyEUva-JkP7wczS3fbvP05jpI36WusoV5OLzjqpAdDfLk4"
 OFFICE_APPS=(
     "Microsoft Word"
