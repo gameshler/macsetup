@@ -76,7 +76,6 @@ install_casks() {
 install_claude() {
      if ! command_exists "claude"; then
          curl -fsSL https://claude.ai/install.sh | bash
-         claude --version 
      else 
          printf "%b\n" "claude is installed"
          printf "%b\n" "Please run /login if not authenticated"
