@@ -59,7 +59,7 @@ install_pkg() {
 }
 
 install_casks() {
-    CASKS='ghostty alfred rectangle keka docker conductor'
+    CASKS='ghostty alfred rectangle keka docker conductor claude-code'
     printf "%b\n" "Installing casks..."
     for pkg in $CASKS; do
         install_cask "$pkg"
@@ -73,19 +73,9 @@ install_casks() {
 
 }
 
-install_claude() {
-     if ! command_exists "claude"; then
-         curl -fsSL https://claude.ai/install.sh | bash
-     else 
-         printf "%b\n" "claude is installed"
-         printf "%b\n" "Please run /login if not authenticated"
-     fi
-   
-}
-
 install_depend
 setup_config
 install_nvm
 install_pkg
 install_casks
-install_claude
+
