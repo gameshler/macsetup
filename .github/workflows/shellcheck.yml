@@ -30,8 +30,35 @@ jobs:
       - name: Run ShellCheck
         run: |
           shellcheck --version
+          findings="$RUNNER_TEMP/shellcheck.txt"
+          rc=0
           git ls-files -z '*.sh' |
-            xargs -0 shellcheck --external-sources --severity=warning --exclude=SC1090,SC1091
+            xargs -0 shellcheck --external-sources --severity=warning \
+              --exclude=SC1090,SC1091 --format=gcc >"$findings" || rc=$?
+
+          if [ -s "$findings" ]; then
+            awk -F: '
+                NF >= 5 && $2 ~ /^[0-9]+$/ && $3 ~ /^[0-9]+$/ {
+                    file = $1; line = $2; col = $3
+                    rest = $0
+                    sub(/^[^:]+:[0-9]+:[0-9]+: /, "", rest)
+                    sev = rest; sub(/:.*/, "", sev)
+                    msg = rest; sub(/^[a-z]+: /, "", msg)
+                    title = "shellcheck"
+                    if (match(msg, /\[SC[0-9]+\]$/)) {
+                        title = substr(msg, RSTART + 1, RLENGTH - 2)
+                        msg = substr(msg, 1, RSTART - 2)
+                    }
+                    lvl = (sev == "error") ? "error" : (sev == "warning") ? "warning" : "notice"
+                    gsub(/%/, "%25", msg)
+                    printf "::%s file=%s,line=%s,col=%s,title=%s::%s\n", lvl, file, line, col, title, msg
+                }
+            ' "$findings"
+            printf '\n--- full shellcheck output ---\n'
+            cat "$findings"
+          fi
+
+          exit "$rc"
 
   shfmt:
     name: Shell Formatting
@@ -57,4 +84,16 @@ jobs:
       - name: Check formatting
         run: |
           shfmt --version
-          shfmt -d -i 4 .
+          unformatted="$RUNNER_TEMP/unformatted.txt"
+          shfmt -l -i 4 . >"$unformatted"
+
+          if [ -s "$unformatted" ]; then
+            while IFS= read -r f; do
+              printf '::error file=%s,title=shfmt::Not formatted. Run: shfmt -w -i 4 %s\n' "$f" "$f"
+            done <"$unformatted"
+            printf '\n--- diff ---\n'
+            shfmt -d -i 4 .
+            exit 1
+          fi
+
+          echo "All shell files are formatted."

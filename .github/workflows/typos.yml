@@ -37,4 +37,16 @@ jobs:
       - name: Run spellcheck
         run: |
           typos --version
-          typos
+          findings="$RUNNER_TEMP/typos.json"
+          rc=0
+          typos --format json >"$findings" || rc=$?
+
+          if [ -s "$findings" ]; then
+            jq -r 'select(.type == "typo") |
+              "::error file=\(.path),line=\(.line_num),col=\(.byte_offset + 1),title=typo::`\(.typo)` should be \(.corrections | join(", "))"' \
+              "$findings"
+            printf '\n--- full typos output ---\n'
+            typos || true
+          fi
+
+          exit "$rc"
