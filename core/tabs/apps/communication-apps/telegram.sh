@@ -1,5 +1,8 @@
 #!/bin/sh -e
 
+# menu: Telegram
+# desc: Messaging
+
 . "$COMMON_SCRIPT"
 
 install_telegram() {

@@ -1,5 +1,7 @@
 #!/bin/sh
-set -e
+
+# menu: Shell Setup
+# desc: zsh, starship prompt and a Nerd Font
 
 . "$COMMON_SCRIPT"
 
@@ -22,11 +24,10 @@ install_depend() {
 
     DEPENDENCIES="zsh-autocomplete bat tree multitail fastfetch unzip fontconfig starship fzf"
 
-    for pkg in $DEPENDENCIES; do
-        install_package "$pkg"
-    done
+    # shellcheck disable=SC2086
+    install_packages $DEPENDENCIES
 
-    install_cask "font-fira-code-nerd-font"
+    install_casks "font-fira-code-nerd-font"
 
     if [ -f "$HOME/.fzf/install" ]; then
         "$HOME/.fzf/install" --all

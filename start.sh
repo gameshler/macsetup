@@ -2,16 +2,13 @@
 
 set -euo pipefail
 
-# Configuration
 REPO="gameshler/macsetup"
 BRANCH="main"
-export TEMP_DIR=$(mktemp -d -t macsetup-XXXXXX)
+TEMP_DIR=$(mktemp -d -t macsetup-XXXXXX)
+export TEMP_DIR
 export INSTALL_DIR="$HOME/Downloads/macsetup"
 
-# Main
 main() {
-
-    # Download and extract repository
     ZIP_FILE="$TEMP_DIR/$BRANCH.zip"
     if ! curl -fsSL -o "$ZIP_FILE" "https://github.com/$REPO/archive/refs/heads/$BRANCH.zip"; then
         echo -e "Failed to download repository"
@@ -23,22 +20,18 @@ main() {
         exit 1
     fi
 
-    # Verify extracted directory exists
     EXTRACTED_DIR="$TEMP_DIR/$(basename "$REPO")-$BRANCH"
     if [[ ! -d "$EXTRACTED_DIR" ]]; then
         echo -e "Extracted directory not found at $EXTRACTED_DIR"
         exit 1
     fi
 
-    # Move to permanent location
     rm -rf "$INSTALL_DIR" 2>/dev/null || true
     mkdir -p "$(dirname "$INSTALL_DIR")"
     mv "$EXTRACTED_DIR" "$INSTALL_DIR"
 
-    # Make scripts executable
     find "$INSTALL_DIR" -name "*.sh" -exec chmod +x {} +
 
-    # Verify and run main script
     MAIN_SCRIPT="$INSTALL_DIR/core/main.sh"
     if [[ -f "$MAIN_SCRIPT" ]]; then
         "$MAIN_SCRIPT"

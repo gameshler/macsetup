@@ -1,0 +1,48 @@
+# This file ignores junk in THIS repository.
+#
+# It is not the gitignore this repository installs. That one is
+# `dotfiles/.gitignore`, which is a payload file copied to the home directory
+# by `core/tabs/system/dev-setup.sh`. Do not merge the two.
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Secrets and keys. Nothing here should ever hold a credential; these patterns
+# are a backstop, not permission to keep one locally.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+id_rsa
+id_ed25519
+*.keychain-db
+
+# Backups and downloads. `zsh-setup.sh` writes `.bak` copies, and the Office
+# and bootstrap scripts download installers. Those land outside the repository
+# by design, so a match here means something was run with the wrong paths set.
+*.bak
+*.orig
+*.pkg
+*.dmg
+*.zip
+
+# Conductor workspace scratch, shared with agents. Also excluded locally via
+# .git/info/exclude, which is not committed and so does not survive a clone.
+.context/
