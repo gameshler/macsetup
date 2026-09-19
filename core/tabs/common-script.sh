@@ -1,4 +1,9 @@
-#!/bin/zsh -e
+#!/usr/bin/env bash
+
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+export HOMEBREW_NO_ENV_HINTS=1
+export HOMEBREW_NO_ANALYTICS=1
 
 command_exists() {
     for cmd in "$@"; do
@@ -14,70 +19,144 @@ command_exists() {
 }
 
 brew_program_exists() {
+    _installed=$(brew list -1 2>/dev/null || true)
     for cmd in "$@"; do
-        brew list "$cmd" >/dev/null 2>&1 || return 1
+        printf '%s\n' "$_installed" | grep -qxF -- "$cmd" || return 1
     done
     return 0
 }
 
-checkPackageManager() {
-    if command_exists "brew"; then
-        printf "%b\n" "Homebrew is Installed"
+sudo_keepalive() {
+    if [ "${SUDO_KEEPALIVE_STARTED:-0}" = "1" ]; then
+        return 0
+    fi
+
+    printf "%b\n" "Requesting administrator access once for this session..."
+    sudo -v || return 1
+
+    _sudo_parent=$$
+    (
+        while kill -0 "$_sudo_parent" 2>/dev/null; do
+            sudo -n true 2>/dev/null || break
+            sleep 50
+        done
+    ) >/dev/null 2>&1 &
+
+    SUDO_KEEPALIVE_STARTED=1
+    export SUDO_KEEPALIVE_STARTED
+    return 0
+}
+
+_brew_alias_installed() {
+    if [ "$1" = cask ]; then
+        brew list --cask --versions "$2" >/dev/null 2>&1
     else
-        printf "%b\n" "Homebrew is not installed"
-        printf "%b\n" "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        install_result=$?
+        brew list --formula --versions "$2" >/dev/null 2>&1
+    fi
+}
 
-        if [ $install_result -ne 0 ]; then
-            printf "%b\n" "Failed to install Homebrew"
-            exit 1
-        fi
+_brew_install_batch() {
+    _kind="$1"
+    shift
+    [ "$#" -gt 0 ] || return 0
 
-        if [ -f "/opt/homebrew/bin/brew" ]; then
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        elif [ -f "/usr/local/bin/brew" ]; then
-            eval "$(/usr/local/bin/brew shellenv)"
+    if [ "$_kind" = cask ]; then
+        _installed=$(brew list --cask -1 2>/dev/null || true)
+    else
+        _installed=$(brew list --formula -1 2>/dev/null || true)
+    fi
+
+    _remaining="$#"
+    while [ "$_remaining" -gt 0 ]; do
+        _pkg="$1"
+        shift
+        if printf '%s\n' "$_installed" | grep -qxF -- "$_pkg"; then
+            printf "%b\n" "$_pkg is already installed. Skipping."
+        elif _brew_alias_installed "$_kind" "$_pkg"; then
+            printf "%b\n" "$_pkg is already installed under its canonical name. Skipping."
+        else
+            set -- "$@" "$_pkg"
         fi
-        trap EXIT INT TERM
+        _remaining=$((_remaining - 1))
+    done
+
+    if [ "$#" -eq 0 ]; then
+        return 0
+    fi
+
+    printf "%b\n" "Installing: $*"
+
+    if [ "$_kind" = cask ]; then
+        sudo_keepalive || printf "%b\n" "No held sudo session; casks may prompt individually."
+        if brew install --cask --no-ask "$@"; then
+            printf "%b\n" "Installed: $*"
+            return 0
+        fi
+    else
+        if brew install --formula --no-ask "$@"; then
+            printf "%b\n" "Installed: $*"
+            return 0
+        fi
+    fi
+
+    printf "%b\n" "Failed to install one or more of: $*"
+    return 1
+}
+
+install_packages() {
+    _brew_install_batch formula "$@"
+}
+
+install_casks() {
+    _brew_install_batch cask "$@"
+}
+
+brew_path() {
+    for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [ -x "$candidate" ]; then
+            printf "%s\n" "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+checkPackageManager() {
+    brew_bin=$(brew_path) || brew_bin=""
+
+    if [ -n "$brew_bin" ]; then
+        eval "$("$brew_bin" shellenv)"
+        printf "%b\n" "Homebrew is Installed"
+        return 0
+    fi
+
+    printf "%b\n" "Homebrew is not installed"
+    printf "%b\n" "Installing Homebrew..."
+
+    if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+        printf "%b\n" "Failed to install Homebrew"
+        exit 1
+    fi
+
+    brew_bin=$(brew_path) || brew_bin=""
+    if [ -z "$brew_bin" ]; then
+        printf "%b\n" "Homebrew installed but no brew binary at /opt/homebrew or /usr/local"
+        exit 1
+    fi
+
+    eval "$("$brew_bin" shellenv)"
+
+    if ! grep -qs 'brew shellenv' "$HOME/.zprofile"; then
+        printf '%s\n' "eval \"\$($brew_bin shellenv)\"" >>"$HOME/.zprofile"
     fi
 }
 
 install_package() {
-    pkg="$1"
-
-    if brew_program_exists "$pkg"; then
-        printf "%b\n" "$pkg is already installed. Skipping."
-        return 0
-    fi
-
-    printf "%b\n" "Installing $pkg..."
-
-    if brew install "$pkg"; then
-        printf "%b\n" "$pkg installed successfully!"
-    else
-        printf "%b\n" "Failed to install $pkg."
-        exit 1
-    fi
+    _brew_install_batch formula "$@"
 }
 
 install_cask() {
-    pkg="$1"
-
-    if brew_program_exists "$pkg"; then
-        printf "%b\n" "$pkg is already installed. Skipping."
-        return 0
-    fi
-
-    printf "%b\n" "Installing cask $pkg..."
-
-    if brew install --cask "$pkg"; then
-        printf "%b\n" "$pkg installed successfully!"
-    else
-        printf "%b\n" "Failed to install cask $pkg."
-        exit 1
-    fi
+    _brew_install_batch cask "$@"
 }
 
 get_file_from_web() {
@@ -98,7 +177,7 @@ get_file_from_web() {
     file_directory=$(dirname "$file")
     if [ ! -d "$file_directory" ]; then
         mkdir -p "$file_directory" || {
-            printf "%b\n" "Failed to create directory %s\n" "$file_directory" >&2
+            printf "%b\n" "Failed to create directory $file_directory\n" >&2
             return 1
         }
     fi
@@ -119,7 +198,7 @@ get_file_from_web() {
         else
             rc=$?
             rm -f "$tmpfile"
-            printf "%b\n" "Failed to download %s (curl rc=%d)\n" "$url" "$rc" >&2
+            printf "%b\n" "Failed to download $url (curl rc=$rc)\n" >&2
         fi
     else
         printf "%b\n" "Error: curl is not installed.\n" >&2
