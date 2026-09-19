@@ -1,26 +1,33 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
+
+# menu: System Cleanup
+# desc: Empty Trash, opt out of Apple Intelligence
 
 . "$COMMON_SCRIPT"
+. "$SETTINGS_LIB"
 
 cleanup_system() {
     printf "%b\n" "Performing system cleanup..."
-    # Fix Missions control to NEVER rearrange spaces
-    printf "%b\n" "Fixing Mission Control to never rearrange spaces..."
-    sudo defaults write com.apple.dock mru-spaces -bool false
 
-    # Apple Intelligence Crap
-    sudo defaults write com.apple.CloudSubscriptionFeatures.optIn "545129924" -bool "false"
+    apply_settings <<'EOF'
+com.apple.dock                            | mru-spaces | bool | false | Dock
+com.apple.CloudSubscriptionFeatures.optIn | 545129924  | bool | false |
+EOF
 
-    # Empty Trash
     printf "%b\n" "Emptying Trash..."
-    sudo rm -rf ~/.Trash/*
+    if [ ! -d "$HOME/.Trash" ]; then
+        printf "%b\n" "No ~/.Trash directory; nothing to empty."
+    elif ! find "$HOME/.Trash" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null; then
+        _settings_record_failure "Trash" \
+            "could not be emptied; grant the terminal Full Disk Access in System Settings > Privacy & Security"
+    fi
 
-    # Remove old log files
     printf "%b\n" "Removing old log files..."
-    find /var/log -type f -name "*.log" -mtime +30 -exec sudo rm -f {} \;
-    find /var/log -type f -name "*.old" -mtime +30 -exec sudo rm -f {} \;
-    find /var/log -type f -name "*.err" -mtime +30 -exec sudo rm -f {} \;
+    sudo_keepalive || printf "%b\n" "No held sudo session; log cleanup may prompt or be skipped."
+    find /var/log -type f \( -name "*.log" -o -name "*.old" -o -name "*.err" \) \
+        -mtime +30 -exec sudo rm -f {} +
 
+    settings_report
 }
 
 cleanup_system
