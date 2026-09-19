@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# menu: Microsoft Office
+# desc: Word, Excel, PowerPoint and Outlook
+
 . "$COMMON_SCRIPT"
 
 OFFICE_PKG_URL="https://res.public.onecdn.static.microsoft/mro1cdnstorage/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/Microsoft_365_and_Office_16.112.26090911_BusinessPro_Installer.pkg"
@@ -109,7 +112,7 @@ install_office() {
     office_pkg="$TEMP_DIR/office.pkg"
     serializer_pkg="$TEMP_DIR/serializer.pkg"
 
-    printf "%b\n" "Downloading Office package to %s...\n" "$office_pkg"
+    printf "%b\n" "Downloading Office package to $office_pkg...\n"
     if ! get_file_from_web "$OFFICE_PKG_URL" "$office_pkg"; then
         printf "%b\n" "Office download failed.\n" >&2
         exit 1
@@ -129,11 +132,11 @@ install_office() {
             }
         fi
     else
-        printf "%b\n" "installer command not found; please install manually: %s\n" "$office_pkg" >&2
+        printf "%b\n" "installer command not found; please install manually: $office_pkg\n" >&2
         exit 1
     fi
 
-    printf "%b\n" "Downloading serializer package to %s...\n" "$serializer_pkg"
+    printf "%b\n" "Downloading serializer package to $serializer_pkg...\n"
     if ! get_file_from_web "$SERIALIZER_PKG_URL" "$serializer_pkg"; then
         printf "%b\n" "Serializer download failed.\n" >&2
         exit 1

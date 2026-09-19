@@ -1,5 +1,8 @@
 #!/bin/sh -e
 
+# menu: Neovim
+# desc: Neovim plus this repository's config
+
 . "$COMMON_SCRIPT"
 
 clone_neovim() {
@@ -13,17 +16,8 @@ clone_neovim() {
 }
 
 install_neovim() {
-    if ! brew_program_exists neovim ripgrep git fzf lua; then
-        printf "%b\n" "Installing Neovim..."
-        brew install neovim ripgrep shellcheck fzf luarocks git
-        if [ $? -ne 0 ]; then
-            printf "%b\n" "Failed to install Neovim. Please check your Homebrew installation."
-            exit 1
-        fi
-        printf "%b\n" "Neovim installed successfully!"
-    else
-        printf "%b\n" "Neovim already installed."
-    fi
+    printf "%b\n" "Installing Neovim..."
+    install_packages neovim ripgrep shellcheck fzf luarocks git
 }
 
 link_neovim_config() {
