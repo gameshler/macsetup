@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: script-checks-${{ github.ref }}
@@ -20,15 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v5
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth=1 origin "${GITHUB_REF}"
+          git checkout -q FETCH_HEAD
 
       - name: Run ShellCheck
-        uses: reviewdog/action-shellcheck@v1
-        with:
-          reporter: github-check
-          filter_mode: nofilter
-          fail_level: any
-          shellcheck_flags: '--external-sources --severity=warning --exclude=SC1090,SC1091'
+        run: |
+          shellcheck --version
+          git ls-files -z '*.sh' |
+            xargs -0 shellcheck --external-sources --severity=warning --exclude=SC1090,SC1091
 
   shfmt:
     name: Shell Formatting
@@ -36,7 +39,13 @@ jobs:
     needs: shellcheck
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v5
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth=1 origin "${GITHUB_REF}"
+          git checkout -q FETCH_HEAD
 
       - name: Install shfmt
         run: |
