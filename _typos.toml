@@ -1,0 +1,6 @@
+[files]
+ignore-hidden = false
+extend-exclude = [".git/", ".git"]
+
+[default]
+extend-ignore-identifiers-re = ["LESS_TERMCAP_[a-z]+"]

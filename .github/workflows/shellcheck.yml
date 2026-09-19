@@ -1,0 +1,60 @@
+name: Script Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: script-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth=1 origin "${GITHUB_REF}"
+          git checkout -q FETCH_HEAD
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck --version
+          git ls-files -z '*.sh' |
+            xargs -0 shellcheck --external-sources --severity=warning --exclude=SC1090,SC1091
+
+  shfmt:
+    name: Shell Formatting
+    runs-on: ubuntu-latest
+    needs: shellcheck
+    steps:
+      - name: Checkout sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth=1 origin "${GITHUB_REF}"
+          git checkout -q FETCH_HEAD
+
+      - name: Install shfmt
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/shfmt" \
+            https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_linux_amd64
+          chmod +x "$RUNNER_TEMP/shfmt"
+          echo "$RUNNER_TEMP" >>"$GITHUB_PATH"
+
+      - name: Check formatting
+        run: |
+          shfmt --version
+          shfmt -d -i 4 .
