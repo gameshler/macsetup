@@ -132,9 +132,17 @@ key_already_uploaded() {
 }
 
 manual_upload() {
-    printf "%b\n" "The public key is on the clipboard. Paste it into the page opening now."
-    pbcopy <"$PUB"
+    if pbcopy <"$PUB"; then
+        printf "%b\n" "The public key is on the clipboard. Paste it into the page opening now."
+    else
+        printf "%b\n" "Could not reach the clipboard. Copy the key below into the page opening now:"
+        cat "$PUB"
+    fi
+
     open "https://github.com/settings/ssh/new"
+
+    printf "%b\n" "GitHub accepts the key the moment you save it there."
+    read -rp "  Press Enter once the key is saved on GitHub " || true
 }
 
 upload_key() {
