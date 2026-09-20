@@ -99,11 +99,25 @@
 
 ## Next phase: Development environment
 
-- [ ] Add `core/tabs/system/git-ssh.sh`.
-  - **Status: written and verified against nine stubbed scenarios. The live run
-    is deliberately not done.** It generates a private key, edits `~/.ssh/config`
-    and uploads to a real GitHub account, and `~/.ssh` is outside what this
-    working session is permitted to read or write. Run it yourself from the menu.
+- [x] Add `core/tabs/system/git-ssh.sh`.
+  - **Status: done. The live run was completed on 2026-09-20 and both
+    acceptance criteria hold.** `ssh -T git@github.com` returns
+    `Hi gameshler! You've successfully authenticated`, over the port 443
+    fallback, and a second run of the tab exits 0 reporting the key, the
+    config block and the uploaded key all already present.
+  - The live run found three defects that the nine stubbed scenarios could
+    not, each fixed in its own commit:
+    - Nothing in the repository installed `gh`, so every run reported the CLI
+      missing and fell through to the manual browser path. The tab now
+      installs it on demand.
+    - `open` returns immediately, so verification ran before the key had been
+      pasted into the page and the tab reported a failure it had caused
+      itself. The manual path now waits for confirmation first.
+    - `verify_github` lacked `StrictHostKeyChecking=accept-new`, which
+      `port_22_reachable` already had. On this port-22-refusing network the
+      443 route is an unknown host, and `BatchMode=yes` forbids the prompt,
+      so ssh aborted with `Host key verification failed.` before
+      authenticating at all.
   - Scope: ed25519 key, agent and keychain configuration, `~/.ssh/config`
     entry, upload, verify. Follows the two guides at `README.md:207-210`.
   - Acceptance criteria: `ssh -T git@github.com` authenticates; re-running with

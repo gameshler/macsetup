@@ -185,13 +185,18 @@ flipped. Verification has to survive a restart, not just a re-read.
 
 ## Phase 4: Development environment
 
-Status: Code complete, blocked on a live run, 2026-09-17
+Status: Done, 2026-09-20
 
 The global bun packages are done, installed by `dev-setup.sh` rather than by a
-separate tab. `git-ssh.sh` is written and verified against nine
-stubbed scenarios, but its live run is deliberately not done: it generates a
-private key and edits `~/.ssh/config`, and `~/.ssh` is outside what this working
-session may touch. Run it from the menu.
+separate tab. `git-ssh.sh` is written, verified against nine stubbed scenarios,
+and confirmed on a live run: `ssh -T git@github.com` authenticates over the port
+443 fallback, and a second run changes nothing and exits 0.
+
+The live run found three defects the stubs could not: `gh` was never installed
+by anything in the repository, verification ran before the browser upload had
+happened, and `verify_github` was missing the `StrictHostKeyChecking=accept-new`
+that `port_22_reachable` already carried -- which on this network made the 443
+route an unknown host and failed the check before authentication was attempted.
 
 One finding from that work changes the exit criteria below: this network refuses
 `github.com:22`, so the tab probes port 22 and falls back to GitHub's documented
