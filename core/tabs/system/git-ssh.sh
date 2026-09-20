@@ -111,6 +111,16 @@ load_key() {
     ssh-add --apple-use-keychain "$KEY" || printf "%b\n" "ssh-add did not load the key."
 }
 
+ensure_gh() {
+    if command_exists gh; then
+        return 0
+    fi
+
+    printf "%b\n" "GitHub CLI is not installed; installing it..."
+    install_package gh || return 1
+    command_exists gh
+}
+
 key_already_uploaded() {
     local material
     material="$(awk '{ print $2 }' "$PUB" 2>/dev/null)"
@@ -135,8 +145,8 @@ upload_key() {
         return 1
     }
 
-    if ! command_exists gh; then
-        printf "%b\n" "GitHub CLI is not installed, so the key cannot be uploaded here."
+    if ! ensure_gh; then
+        printf "%b\n" "GitHub CLI is not available, so the key cannot be uploaded here."
         manual_upload
         return 1
     fi
