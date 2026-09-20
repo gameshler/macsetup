@@ -188,7 +188,8 @@ verify_github() {
 
     printf "%b\n" "Verifying authentication against GitHub..."
 
-    out="$(ssh -o BatchMode=yes -o ConnectTimeout=10 -T git@github.com </dev/null 2>&1)"
+    out="$(ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new \
+        -T git@github.com </dev/null 2>&1)"
 
     case "$out" in
     *"successfully authenticated"*)
