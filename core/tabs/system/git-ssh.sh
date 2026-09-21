@@ -111,6 +111,16 @@ load_key() {
     ssh-add --apple-use-keychain "$KEY" || printf "%b\n" "ssh-add did not load the key."
 }
 
+ensure_gh() {
+    if command_exists gh; then
+        return 0
+    fi
+
+    printf "%b\n" "GitHub CLI is not installed; installing it..."
+    install_package gh || return 1
+    command_exists gh
+}
+
 key_already_uploaded() {
     local material
     material="$(awk '{ print $2 }' "$PUB" 2>/dev/null)"
@@ -122,9 +132,17 @@ key_already_uploaded() {
 }
 
 manual_upload() {
-    printf "%b\n" "The public key is on the clipboard. Paste it into the page opening now."
-    pbcopy <"$PUB"
+    if pbcopy <"$PUB"; then
+        printf "%b\n" "The public key is on the clipboard. Paste it into the page opening now."
+    else
+        printf "%b\n" "Could not reach the clipboard. Copy the key below into the page opening now:"
+        cat "$PUB"
+    fi
+
     open "https://github.com/settings/ssh/new"
+
+    printf "%b\n" "GitHub accepts the key the moment you save it there."
+    read -rp "  Press Enter once the key is saved on GitHub " || true
 }
 
 upload_key() {
@@ -135,8 +153,8 @@ upload_key() {
         return 1
     }
 
-    if ! command_exists gh; then
-        printf "%b\n" "GitHub CLI is not installed, so the key cannot be uploaded here."
+    if ! ensure_gh; then
+        printf "%b\n" "GitHub CLI is not available, so the key cannot be uploaded here."
         manual_upload
         return 1
     fi
@@ -170,7 +188,8 @@ verify_github() {
 
     printf "%b\n" "Verifying authentication against GitHub..."
 
-    out="$(ssh -o BatchMode=yes -o ConnectTimeout=10 -T git@github.com </dev/null 2>&1)"
+    out="$(ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new \
+        -T git@github.com </dev/null 2>&1)"
 
     case "$out" in
     *"successfully authenticated"*)
