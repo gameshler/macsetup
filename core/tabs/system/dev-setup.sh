@@ -5,7 +5,7 @@
 
 . "$COMMON_SCRIPT"
 
-DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr rust git'
+DEPENDENCIES='tree unzip python pipx cmake make jq fd ripgrep automake autoconf ffmpeg imagemagick tldr rust git uv'
 
 CASKS='ghostty alfred rectangle keka docker-desktop conductor claude-code'
 
