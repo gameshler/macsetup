@@ -437,6 +437,21 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: changing any one asserted string in a test makes
     that test fail.
 
+- [ ] Displays > Advanced: turn off both Universal Control toggles.
+  - Requested by the owner, 2026-11-16: turn off "Allow your pointer and
+    keyboard to move between any nearby Mac or iPad" and "Push through the
+    edge of a display to connect a nearby Mac or iPad".
+  - Read-only, 2026-11-16: `com.apple.universalcontrol` still does not exist
+    on 27.2.1, so neither toggle has ever been changed and there is no plist
+    to read key names from.
+  - Candidate keys, **unverified**: `com.apple.universalcontrol Disable` and
+    `DisableMagicEdges`, both bool `true`. Confirm with a before-and-after
+    diff of the owner turning the two toggles off, as for Spotlight and Siri,
+    before writing either as a manifest row. The diff also shows whether a
+    restart of `UniversalControl` is needed for the change to take effect.
+  - Acceptance criteria: both toggles read back off and show off in Displays >
+    Advanced after the pane is reopened.
+
 - [ ] Finder sidebar: show only Applications, Documents, Downloads, Home,
   external disks and the Trash, and turn off every tag.
   - The owner's list, 2026-11-16, replacing the earlier eight-item list.
@@ -548,18 +563,13 @@ No open tasks.
     for `gitconfig` is a project-type config generator with a CLI, so it would
     need naming or a source URL.
 
-- [ ] Display Advanced, and General > AutoFill and Passwords.
-  - **Scope given by the owner 2026-09-17: "disable everything" in both panes.**
-    That retires the blocker recorded here previously, which was that no
-    document named a wanted state for either pane. It does not retire the whole
-    task, because "everything" is a state without a list: neither pane's toggles
-    can be enumerated from this machine yet, for the two separate reasons below.
-    The remaining work is enumeration, not requirements.
-  - Acceptance criteria, now that a target state exists: every toggle present in
-    Displays > Advanced and in General > AutoFill and Passwords reads back off,
-    and the two panes show them off after being reopened. The read-back is the
-    part that needs Full Disk Access.
-  - **AutoFill: the TCC claim is confirmed, 2026-09-17.** It is not a permissions
+- [ ] General > AutoFill and Passwords.
+  - **Scope given by the owner 2026-09-17: "disable everything".** Displays >
+    Advanced, once part of this task, has its own task in the macOS 27
+    section. The remaining work is enumerating the AutoFill toggles.
+  - Acceptance criteria: every toggle in General > AutoFill and Passwords reads
+    back off, and the pane shows them off after being reopened.
+  - **The TCC claim is confirmed, 2026-09-17.** It is not a permissions
     problem and cannot be worked around by fixing modes:
 
     | Check | Result |
@@ -570,23 +580,11 @@ No open tasks.
     | `head -c 8` on it | `Operation not permitted` |
     | `plutil -p` | `NSCocoaErrorDomain Code=257` / `NSPOSIXErrorDomain Code=1` |
 
-    Owning a file with `rw-------` and still being refused is the TCC signature,
-    identical to the Finder sidebar item above. Full Disk Access for the terminal
-    is a hard prerequisite.
-  - **Display Advanced: no domain has ever been written.**
-    `defaults read com.apple.universalcontrol` reports `Domain ... does not
-    exist`, so the Universal Control toggles in that pane are all at their
-    defaults and there is no existing plist to read key names out of. Confirming
-    them means changing a toggle in the GUI and diffing, which needs the scope
-    decision first to know which toggle is even relevant.
-  - Note: this item and the Finder sidebar share the same Full Disk Access
-    prerequisite, so one grant unblocks the TCC half of both.
-  - To unblock: grant Full Disk Access to the terminal. That is now the only
-    outstanding prerequisite -- it makes the Safari container readable, which
-    turns "disable everything" in the AutoFill pane into an enumerable list, and
-    it is the same grant the Finder sidebar item needs. Display Advanced also
-    needs one GUI toggle flipped and diffed to learn the key names, because the
-    domain does not exist until something writes it.
+    Owning a file with `rw-------` and still being refused is the TCC
+    signature. Full Disk Access for the terminal is a hard prerequisite.
+  - To unblock: the menu now grants Full Disk Access for the session, which
+    makes the Safari container readable and turns "disable everything" into an
+    enumerable list.
 
 ## Completed
 
