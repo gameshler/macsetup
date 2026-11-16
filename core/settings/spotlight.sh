@@ -26,6 +26,36 @@ disable_spotlight_categories() {
     verify_setting com.apple.Spotlight orderedItems "enabled = 1" absent || true
 }
 
+# Written by the macOS 27 pane when Show Related Content and the results from
+# system items (applications, files, folders, iPhone apps, menu items) are
+# turned off. Despite the key's name, a listed rule hides its results.
+SPOTLIGHT_HIDDEN_RULES='Custom.relatedContents System.applications System.files
+System.folders System.iphoneApps System.menuItems'
+
+spotlight_rule_listed() {
+    defaults read com.apple.Spotlight EnabledPreferenceRules 2>/dev/null |
+        tr -d ' ",()' | grep -qxF -- "$1"
+}
+
+# Added one at a time rather than written as a whole array, so a rule set some
+# other way stays and nothing is turned back on.
+hide_spotlight_rules() {
+    local rule state
+
+    printf "%b\n" "Hiding related content and system items from Spotlight..."
+
+    for rule in $SPOTLIGHT_HIDDEN_RULES; do
+        spotlight_rule_listed "$rule" && continue
+        defaults write com.apple.Spotlight EnabledPreferenceRules -array-add "$rule" 2>/dev/null || true
+    done
+
+    for rule in $SPOTLIGHT_HIDDEN_RULES; do
+        state="missing"
+        spotlight_rule_listed "$rule" && state="listed"
+        verify_value "com.apple.Spotlight EnabledPreferenceRules $rule" "listed" "$state" exact || true
+    done
+}
+
 disable_symbolic_hotkey() {
     local id="$1" fallback_parameters="$2" value_xml
 
@@ -67,6 +97,14 @@ spotlight() {
     printf "%b\n" "Configuring Spotlight..."
 
     disable_spotlight_categories
+    hide_spotlight_rules
+
+    # 2 is the pane's "off" for Help Apple Improve Search; the key is absent
+    # until the toggle is first changed.
+    apply_settings <<'EOF'
+com.apple.assistant.support | Search Queries Data Sharing Status | int | 2 |
+EOF
+
     disable_spotlight_hotkeys
     apply_and_restart
 }
