@@ -238,8 +238,25 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `orderedItems` reads all off, so the remainder is in the macOS 26+ pane
     sections the tab never wrote -- the new domain keys above suggest results
     from apps, clipboard history and related content. Keys not yet identified.
-  - Enumerate by toggling each remaining control in System Settings and
-    diffing `com.apple.Spotlight` and `com.apple.corespotlightui`.
+  - **Controls on 27.2.1, from the English strings of
+    `SpotlightPreferenceExtension.appex`, 2026-11-16:** the Search results
+    categories (`orderedItems`, already written), and four toggles nothing
+    writes yet: Results from Clipboard, Show Related Content, Help Apple
+    Improve Search, and content from Apple partners in searches and Look Up.
+    Search Privacy, Hidden File Types, Quick Keys and Delete Search History
+    are lists or actions, not toggles.
+  - The binary is Swift and names none of the four keys as a plain string.
+    Candidates read so far: `com.apple.Spotlight` carries only
+    `PasteboardHistoryVersion`, `PasteboardHistoryNeedsWipe`, empty
+    `DisabledUTTypes` and `EnabledPreferenceRules`, and `ModelName = Canned`;
+    `com.apple.spotlight.settings` and `com.apple.lookup.shared` do not exist.
+    The pane's own containers under `~/Library/Containers/` are refused
+    without Full Disk Access, so the keys may live there.
+  - Method: a read-only XML snapshot of every plist in
+    `~/Library/Preferences` and `ByHost` was taken at 05:00 into
+    `.context/prefs-before/`. The owner turns the four toggles off, then a
+    second snapshot is diffed against it. If nothing changes, repeat from a
+    terminal with Full Disk Access so the containers are included.
   - Acceptance criteria: every toggle in the Spotlight pane reads back off.
 
 - [ ] Disable all Siri suggestions.
