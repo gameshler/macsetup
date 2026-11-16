@@ -32,28 +32,11 @@ disable_spotlight_categories() {
 SPOTLIGHT_HIDDEN_RULES='Custom.relatedContents System.applications System.files
 System.folders System.iphoneApps System.menuItems'
 
-spotlight_rule_listed() {
-    defaults read com.apple.Spotlight EnabledPreferenceRules 2>/dev/null |
-        tr -d ' ",()' | grep -qxF -- "$1"
-}
-
-# Added one at a time rather than written as a whole array, so a rule set some
-# other way stays and nothing is turned back on.
 hide_spotlight_rules() {
-    local rule state
-
     printf "%b\n" "Hiding related content and system items from Spotlight..."
 
-    for rule in $SPOTLIGHT_HIDDEN_RULES; do
-        spotlight_rule_listed "$rule" && continue
-        defaults write com.apple.Spotlight EnabledPreferenceRules -array-add "$rule" 2>/dev/null || true
-    done
-
-    for rule in $SPOTLIGHT_HIDDEN_RULES; do
-        state="missing"
-        spotlight_rule_listed "$rule" && state="listed"
-        verify_value "com.apple.Spotlight EnabledPreferenceRules $rule" "listed" "$state" exact || true
-    done
+    # shellcheck disable=SC2086 # one rule per word
+    ensure_listed com.apple.Spotlight EnabledPreferenceRules $SPOTLIGHT_HIDDEN_RULES
 }
 
 disable_symbolic_hotkey() {

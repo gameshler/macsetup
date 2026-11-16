@@ -183,6 +183,32 @@ verify_setting() {
     verify_value "$domain $key" "$expected" "$(_settings_read "$domain" "$key")" "$mode"
 }
 
+_settings_array_lists() {
+    defaults read "$1" "$2" </dev/null 2>/dev/null |
+        tr -d ' ",()' | grep -qxF -- "$3"
+}
+
+# ensure_listed <domain> <key> <item>...
+# Adds each missing item to an array preference with -array-add, then reads
+# every item back. The array is never rewritten whole, so an item listed some
+# other way is kept. Items are matched whole and must not contain spaces,
+# quotes, commas or parentheses, which the read-back strips.
+ensure_listed() {
+    local domain="$1" key="$2" item state
+    shift 2
+
+    for item in "$@"; do
+        _settings_array_lists "$domain" "$key" "$item" && continue
+        defaults write "$domain" "$key" -array-add "$item" </dev/null 2>/dev/null || true
+    done
+
+    for item in "$@"; do
+        state="missing"
+        _settings_array_lists "$domain" "$key" "$item" && state="listed"
+        verify_value "$domain $key $item" "listed" "$state" exact || true
+    done
+}
+
 settings_report() {
     if [ "$SETTINGS_FAILED_COUNT" -eq 0 ]; then
         printf '%b\n' "All settings applied and verified."
