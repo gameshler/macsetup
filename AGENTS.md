@@ -176,13 +176,19 @@ Details the engine owns, so no caller has to remember them:
   `set -e` that aborts the script. See the next rule for why that is worse than
   it sounds.
 
-The manifest covers scalar key/value writes, which is most of them. Five cases
+The manifest covers scalar key/value writes, which is most of them. Four cases
 are structural and stay as explicit code: `com.apple.dock persistent-apps`,
-`com.apple.Spotlight orderedItems`, `com.apple.Spotlight
-EnabledPreferenceRules`, `com.apple.symbolichotkeys` `AppleSymbolicHotKeys`,
-and `com.apple.finder FavoriteTagNames`. `EnabledPreferenceRules` is added to
-one rule at a time with `-array-add`, never rewritten whole, so a rule the
-owner set some other way survives. Those still
+`com.apple.Spotlight orderedItems`, `com.apple.symbolichotkeys`
+`AppleSymbolicHotKeys`, and `com.apple.finder FavoriteTagNames`.
+
+An array that only needs items present goes through
+`ensure_listed <domain> <key> <item>...` in `settings-lib.sh`, never a whole
+`-array` write: it adds each missing item with `-array-add` and reads every
+item back, so an item listed some other way survives and a second run writes
+nothing. `com.apple.Spotlight EnabledPreferenceRules` and
+`com.apple.suggestions AppCanShowSiriSuggestionsBlacklist` use it.
+
+The structural cases still
 verify through the shared `verify_setting` helper rather than rolling their own
 read-back. `pmset` and `socketfilterfw` are not preferences at all: they get
 their own reads and report through `verify_value`.
@@ -450,8 +456,8 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `bats` covers `core/tabs/settings-lib.sh`, the batch install in
 `core/tabs/common-script.sh`, the order and single report of
 `optimize-settings.sh` against stub modules, the Alfred hotkey write
-against a scratch `HOME`, and the Spotlight hide rules against a stubbed
-`defaults`. Most of this repository changes the machine it
+against a scratch `HOME`, and the Spotlight hide rules and Siri suggestion
+list against a stubbed `defaults`. Most of this repository changes the machine it
 runs on and cannot be tested; those two are the exception, because deciding
 what to write or install and whether it took is string handling.
 `test/common-script.bats` stubs `brew` as a shell function and skips when no

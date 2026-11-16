@@ -16,7 +16,7 @@ setup() {
     export FAILING_STEP="" GRANTED=1
 
     local step
-    for step in security spotlight alfred desktop_dock fix_finder configure_input remove_animations display cleanup_system; do
+    for step in security spotlight disable_siri_suggestions alfred desktop_dock fix_finder configure_input remove_animations display cleanup_system; do
         printf '%s() { echo "STEP %s"; [ "$FAILING_STEP" != "%s" ]; }\n' \
             "$step" "$step" "$step" >"$STUB_MODULES/$step.sh"
     done
@@ -35,7 +35,7 @@ run_optimizer() {
 
     [ "$status" -eq 0 ]
     [ "$(printf '%s\n' "$output" | sed -n 's/^STEP //p' | tr '\n' ' ')" = \
-        "security spotlight alfred desktop_dock fix_finder configure_input remove_animations display cleanup_system " ]
+        "security spotlight disable_siri_suggestions alfred desktop_dock fix_finder configure_input remove_animations display cleanup_system " ]
 }
 
 @test "a clean run ends with one all-verified line" {
@@ -96,7 +96,7 @@ run_optimizer() {
 
     run env PATH="$bin:$PATH" bash -c '
         for module in "$1"/*.sh; do . "$module"; done
-        for area in security spotlight alfred desktop_dock fix_finder configure_input remove_animations display cleanup_system; do
+        for area in security spotlight disable_siri_suggestions alfred desktop_dock fix_finder configure_input remove_animations display cleanup_system; do
             declare -F "$area" >/dev/null || echo "MISSING $area"
         done
     ' _ "$BATS_TEST_DIRNAME/../core/settings"
