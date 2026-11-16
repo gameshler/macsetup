@@ -92,9 +92,6 @@ pause() {
     read -rp "  Press Enter to continue "
 }
 
-# Every step that calls check_full_disk_access, as named to the user.
-FULL_DISK_ACCESS_STEPS="Reduce motion and emptying the Trash"
-
 # Probed once at startup: a grant only takes effect after the terminal is
 # reopened, which restarts the menu anyway.
 full_disk_access_status() {

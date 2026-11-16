@@ -39,10 +39,15 @@ revoke_full_disk_access() {
     ! _full_disk_access_still_granted "$1"
 }
 
+# Every step that needs Full Disk Access, as named to the user. The home
+# screen and the settings run both announce this one list up front, so a step
+# that needs the grant is added here rather than checking on its own.
+FULL_DISK_ACCESS_STEPS="Reduce motion and emptying the Trash"
+
 check_full_disk_access() {
     full_disk_access_granted && return 0
 
-    printf "%b\n" "$1 needs Full Disk Access, which this terminal does not have, so it will fail."
+    printf "%b\n" "Without Full Disk Access, which this terminal does not have, these steps will fail: $FULL_DISK_ACCESS_STEPS."
     printf "%b\n" "Grant it in System Settings > Privacy & Security > Full Disk Access, then quit and reopen the terminal."
     return 1
 }

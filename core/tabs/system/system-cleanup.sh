@@ -15,7 +15,7 @@ com.apple.CloudSubscriptionFeatures.optIn | 545129924  | bool | false |
 EOF
 
     printf "%b\n" "Emptying Trash..."
-    check_full_disk_access "Emptying the Trash" || true
+    check_full_disk_access || true
     if [ ! -d "$HOME/.Trash" ]; then
         printf "%b\n" "No ~/.Trash directory; nothing to empty."
     elif ! find "$HOME/.Trash" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null; then

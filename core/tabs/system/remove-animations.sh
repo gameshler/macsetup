@@ -8,7 +8,7 @@
 
 remove_animations() {
     printf "%b\n" "Reducing motion and animations on macOS..."
-    check_full_disk_access "Reduce motion" || true
+    check_full_disk_access || true
 
     apply_settings <<'EOF'
 com.apple.universalaccess | reduceMotion                       | bool  | true  |

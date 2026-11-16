@@ -37,27 +37,33 @@ setup() {
     [ "$status" -eq 1 ]
 }
 
-@test "without access, a step announces that it needs Full Disk Access" {
+@test "without access, the announcement names every step that will fail" {
     FULL_DISK_ACCESS_PROBE="$REFUSED"
+    FULL_DISK_ACCESS_STEPS="Reduce motion and emptying the Trash"
 
-    run check_full_disk_access "Reduce motion"
+    run check_full_disk_access
 
     [ "$status" -eq 1 ]
-    printf '%s\n' "$output" | grep -qF "Reduce motion needs Full Disk Access"
+    printf '%s\n' "$output" | grep -qF "these steps will fail: Reduce motion and emptying the Trash"
+}
+
+@test "the shared step list names reduce motion and the Trash" {
+    printf '%s\n' "$FULL_DISK_ACCESS_STEPS" | grep -qF "Reduce motion"
+    printf '%s\n' "$FULL_DISK_ACCESS_STEPS" | grep -qF "Trash"
 }
 
 @test "without access, the announcement names where to grant it" {
     FULL_DISK_ACCESS_PROBE="$REFUSED"
 
-    run check_full_disk_access "Reduce motion"
+    run check_full_disk_access
 
     printf '%s\n' "$output" | grep -qF "Privacy & Security > Full Disk Access"
 }
 
-@test "with access, a step runs without any announcement" {
+@test "with access, nothing is announced" {
     FULL_DISK_ACCESS_PROBE="$READABLE"
 
-    run check_full_disk_access "Reduce motion"
+    run check_full_disk_access
 
     [ "$status" -eq 0 ]
     [ -z "$output" ]
