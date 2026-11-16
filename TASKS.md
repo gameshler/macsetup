@@ -375,6 +375,20 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
 - [ ] Disable Tips.
   - `com.apple.tipsd` exists; notification and suggestion keys not yet
     identified. `Tips.app` is a system app and cannot be removed.
+  - **Read-only, 2026-11-16:** every `TPS*` key in `com.apple.tipsd` is
+    daemon state (counts, dates, pending tips), not a setting. `tipsd` logs
+    "Skip checking notification. Notification disabled %d", so it obeys the
+    app's notification permission: the switch is Notifications > Tips >
+    Allow notifications.
+  - That switch is not readable here. `com.apple.ncprefs` no longer exists on
+    27.2.1, and notification settings sit in
+    `~/Library/Group Containers/group.com.apple.usernoted`, which is
+    TCC-refused without Full Disk Access.
+  - Next: with Full Disk Access, take XML snapshots of that container's
+    `Library/Preferences`, have the owner turn Tips off in the pane, and diff.
+    Writing the key would also need Full Disk Access, so Tips would join
+    `FULL_DISK_ACCESS_STEPS`. The Spotlight clipboard diff needs the same
+    session.
   - Acceptance criteria: no Tips notifications, Tips notifications off in the
     Notifications pane.
 
