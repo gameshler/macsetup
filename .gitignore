@@ -46,3 +46,6 @@ id_ed25519
 # Conductor workspace scratch, shared with agents. Also excluded locally via
 # .git/info/exclude, which is not committed and so does not survive a clone.
 .context/
+
+# Serena MCP project state and cache, created per machine.
+.serena/
