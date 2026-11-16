@@ -97,6 +97,278 @@
     a live domain and can flush a stale copy back over a `defaults write`, so the
     pane is the only check that catches it.
 
+## Queued: macOS 27 system optimization
+
+Requested by the owner on 2026-11-16 after a fresh install of macOS 27.2.1
+(26B131). The goal is a Mac optimized for performance and security. Every key
+in the appendix was verified on macOS 15.7.9 and none of it is verified on 27
+until it is read back here. Observations below were taken read-only on
+2026-11-16; nothing was written.
+
+Owner decisions, 2026-11-16, after testing the repository on the new install:
+
+- Consolidating the settings tabs into one entry is approved.
+- Bluetooth stays a manual toggle. It is not to be forced off on every run.
+- Battery: only the four options named in the battery task.
+- FileVault is done by hand and stays out of the repository.
+- Firewall stealth mode goes on.
+- Apple Intelligence and AI features: disable everything, and remove whatever
+  can be removed.
+- The repository checks whether the terminal has Full Disk Access.
+
+- [ ] Re-baseline every settings tab in `core/tabs/system/` against macOS 27.
+  - `SPEC.md:108` still targets macOS 15 (Sequoia) and the appendix records
+    15.7.9 keys. Both need updating to 27.2.1 once each key is re-verified.
+  - Observed already on 27.2.1:
+
+    | Tab | Observation |
+    | --- | --- |
+    | `remove-animations.sh` | `reduceMotion` is **absent** from `com.apple.universalaccess`; see the reduce motion task |
+    | `spotlight.sh` | `orderedItems` still reads all 21 categories `enabled = 0`, but the domain now also carries `DisabledUTTypes`, `EnabledPreferenceRules` and `PasteboardHistory*` keys the tab does not touch |
+    | `spotlight.sh` | hotkeys `64` and `65` read `enabled = false` with the expected parameters |
+    | `system-cleanup.sh` | `com.apple.CloudSubscriptionFeatures.optIn 545129924` still exists and reads `0` |
+    | `security.sh` | `womp` reads `0` on both battery and AC |
+    | `alfred.sh` | the machine-local hotkey directory did not exist when the tab ran; see the Alfred task |
+
+  - **Read-only audit of every manifest row, 2026-11-16: 56 of 58 read back
+    as specified.** Every row in `desktop-dock.sh`, `fix-finder.sh`,
+    `input.sh` and `system-cleanup.sh` holds, and so does every animation row
+    except one. The two failures:
+
+    | Row | Read back |
+    | --- | --- |
+    | `com.apple.universalaccess reduceMotion` | key absent (TCC; see the reduce motion task) |
+    | `/Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled` | key absent, while the other five Software Update keys and `com.apple.commerce AutoUpdate` read correctly |
+
+    `AutomaticCheckEnabled` is the key the appendix recorded as absent and
+    needing creation. Either the row never took or `softwareupdated` removed
+    it on 27; find out which before writing it again.
+  - Also read back: the firewall reports `State = 1`, and the Dock holds only
+    System Settings.
+  - A row that reads back is not the same as the UI agreeing. The Finder
+    complaints below are about settings no manifest row covers.
+  - `display.sh` is confirmed fine by the owner, 2026-11-16, and needs no work.
+  - Still to check: the Spotlight and Alfred structural checks against the UI,
+    and the sidebar file. Neither
+    `com.apple.LSSharedFileList.FavoriteItems.sfl3` nor `.sfl4` exists by name
+    on 27.2.1; `stat` on a known path worked through TCC on 15, so the file
+    has been renamed or moved.
+  - `AGENTS.md` cites `core/main.sh:49` and `:53` for the menu discovery rule;
+    those lines are now `core/main.sh:173` and `:177`.
+  - Acceptance criteria: every manifest row and structural check reads back on
+    27.2.1, and the appendix and `SPEC.md` name 27.2.1 as the verified version.
+
+- [ ] Consolidate the settings tabs into one "Optimize settings" menu entry.
+  - The owner wants one option under System Settings that applies every
+    settings change, instead of one menu entry per area. Approved 2026-11-16.
+  - In scope: `alfred.sh`, `desktop-dock.sh`, `display.sh`, `fix-finder.sh`,
+    `input.sh`, `remove-animations.sh`, `security.sh`, `spotlight.sh`,
+    `system-cleanup.sh`, and every new settings task in this section. Out of
+    scope: `dev-setup.sh`, `git-ssh.sh` and `zsh-setup.sh`, which install
+    tooling rather than change settings.
+  - Constraint: `core/main.sh:177` lists every directory and every `*.sh` inside
+    a category, so the per-area modules cannot simply move into a subdirectory
+    of `core/tabs/system/` -- that becomes a submenu. They need a location the
+    menu does not walk, or to become functions in non-`.sh` files, and an
+    exported path in the environment contract if they move.
+  - Order matters: `spotlight.sh` must run before `alfred.sh`, because
+    Alfred cannot take cmd+space while Spotlight holds it.
+  - Use the Full Disk Access check from its own task at the start, and say
+    which steps need it (reduce motion, Finder sidebar, AutoFill) rather than
+    letting each fail separately.
+  - One `settings_report` at the end, so the run produces a single failure
+    list instead of one per area.
+  - Acceptance criteria: System Settings shows one settings entry; running it
+    applies everything the separate tabs applied; a second run reports every
+    key already applied; `shellcheck`, `shfmt`, `bats` and `typos` pass.
+
+- [ ] Fix the Alfred cmd+space hotkey not applying.
+  - The owner had to set the hotkey by hand in Alfred after running the tab.
+  - Likely cause, from file timestamps: the tab wrote the web search prefs at
+    23:51:04 on 2026-11-15, but
+    `preferences/local/a893a2b86f5f53d443d65a4acf51e39fe0ffa663/` was created
+    at 00:15:58, together with its `hotkey/prefs.plist` -- the manual change.
+    Alfred does not create the machine-local directory on first launch, only
+    when a local preference is first changed. `local_prefs_dir` found nothing
+    and `set_hotkey` took its "launch Alfred once" branch, even though Alfred
+    had been launched.
+  - The hash is available without the directory: `prefs.json` in
+    `~/Library/Application Support/Alfred/` carries `localhash`. Create the
+    directory from that rather than requiring it to exist.
+  - Second cause: Spotlight was disabled at 00:14:10, after the Alfred tab
+    ran, so cmd+space was still held by Spotlight at the time. The
+    consolidation task fixes the order.
+  - Acceptance criteria: on a fresh Alfred install, one run binds cmd+space
+    and the hotkey works without opening Alfred Preferences.
+
+- [ ] Fix reduce motion not applying.
+  - `defaults read com.apple.universalaccess reduceMotion` reports the key does
+    not exist. The plist carries `com.apple.macl`, and the terminal lacks Full
+    Disk Access, so this is the TCC case `AGENTS.md` already describes: the
+    write is refused and the row should already be reported as failed.
+  - Decide between requiring Full Disk Access for this step and reporting it as
+    a manual step. Either way the tab has to say so up front, not only in the
+    failure list.
+  - Acceptance criteria: `reduceMotion` reads `1` and Accessibility > Display >
+    Reduce motion shows on, or the run names it as a manual step with the
+    remedy.
+
+- [ ] Disable everything in Spotlight.
+  - The owner reports that not everything in the Spotlight pane is off.
+    `orderedItems` reads all off, so the remainder is in the macOS 26+ pane
+    sections the tab never wrote -- the new domain keys above suggest results
+    from apps, clipboard history and related content. Keys not yet identified.
+  - Enumerate by toggling each remaining control in System Settings and
+    diffing `com.apple.Spotlight` and `com.apple.corespotlightui`.
+  - Acceptance criteria: every toggle in the Spotlight pane reads back off.
+
+- [ ] Disable all Siri suggestions.
+  - Candidate domains on this machine: `com.apple.suggestions`,
+    `com.apple.siri.sirisuggestions`, `com.apple.assistant.support`
+    (`Assistant Enabled` already reads `0`). Keys for the per-app "Show
+    suggestions from" list are not yet identified.
+  - Acceptance criteria: Siri > Suggestions and per-app suggestion toggles all
+    read off.
+
+- [ ] Disable Apple Intelligence and other AI features, and remove what can be
+  removed.
+  - Owner, 2026-11-16: disable everything; removing is better wherever it is
+    possible.
+  - Present on this machine: `/System/Applications/Image Playground.app`,
+    `Siri AI.app` and `Siri.app`, plus domains `com.apple.generativesearch`,
+    `com.apple.GenerativeFunctions.agentstored`,
+    `com.apple.GenerativeModels.AgentSessionKit`,
+    `com.apple.generativepartnerservicesettings` and
+    `com.apple.AppleIntelligenceReport`.
+  - **The system apps cannot be removed.** They live on the sealed system
+    volume, and removing them means disabling SIP, which contradicts the
+    security goal. The deliverable is disable, not remove, for anything under
+    `/System`.
+  - Removable: `/Applications/Microsoft 365 Copilot Shim.app`, presumably from
+    the Office install. Confirm its origin before removing it.
+  - Also in scope: ChatGPT and other partner extensions, writing tools, and
+    the on-device model downloads, which turning Apple Intelligence off should
+    release. Keys not yet identified.
+  - Acceptance criteria: Apple Intelligence & Siri shows everything off, and no
+    third-party AI app remains in `/Applications`.
+
+- [ ] Disable Tips.
+  - `com.apple.tipsd` exists; notification and suggestion keys not yet
+    identified. `Tips.app` is a system app and cannot be removed.
+  - Acceptance criteria: no Tips notifications, Tips notifications off in the
+    Notifications pane.
+
+- [x] ~~Disable Bluetooth.~~ **Withdrawn 2026-11-16 at the owner's request.**
+  Bluetooth stays a manual toggle so it can be turned back on when needed; the
+  repository does not force it off. It reads `State: Off` today because it was
+  switched off by hand.
+
+- [ ] Turn off four Battery options.
+  - Scope from the owner, 2026-11-16, and nothing else in the pane:
+
+    | Battery > Options row | Target | Current `pmset -g custom` |
+    | --- | --- | --- |
+    | Slightly dim the display on battery | off | `lessbright 0` on battery |
+    | Prevent automatic sleeping on power adapter when the display is off | off | key not yet mapped |
+    | Wake for network access | Never | `womp 0` on battery and AC, already set by `security.sh` |
+    | Optimize video streaming while on battery | off | key not yet mapped |
+
+  - `lessbright` already reads 0, so it needs confirming against the pane
+    rather than writing. The two unmapped rows need a toggle-and-diff of
+    `pmset -g custom` to find their keys on 27.2.1.
+  - `pmset` is not a preference, so each row needs its own read-back through
+    `verify_value`, as `womp` does in `security.sh`. Writes need `sudo`.
+  - Acceptance criteria: all four rows show off or Never in Battery > Options,
+    and each mapped `pmset` key reads back as specified.
+
+- [ ] Disable every app in Menu Bar > Allow in the menu bar.
+  - `com.apple.controlcenter` on 27.2.1 has none of the old per-item
+    `NSStatusItem Visible` keys; the configuration appears to live in
+    `ControlCenterDisplayableChronoControlsProviderConfiguration`, a 13 KB JSON
+    blob. That is structural, not a manifest row. Format not yet established.
+  - Acceptance criteria: every app in the list reads off and none appears in
+    the menu bar after a logout.
+
+- [ ] Set the wallpaper to solid black.
+  - macOS ships a black solid colour under Wallpaper > Colors. Mechanism not
+    chosen: AppleScript through System Events needs an Automation grant, and
+    `desktoppr` would be a new dependency.
+  - Acceptance criteria: every display and every Space shows black, and it
+    survives a logout.
+
+- [ ] Harden and tune the rest of the system for performance and security.
+  - Observed: FileVault is off, firewall stealth mode is off, SIP is on,
+    Gatekeeper assessments are on.
+  - **FileVault is out of scope.** The owner turns it on by hand, 2026-11-16.
+  - Turn stealth mode on: `sudo socketfilterfw --setstealthmode on` in
+    `security.sh`, read back with `--getstealthmode` through `verify_value`.
+    Check the exact output string on 27.2.1 before choosing the `contains`
+    text; today it prints `Firewall stealth mode is off`.
+  - Acceptance criteria: stealth mode reads on and shows on in Network >
+    Firewall > Options; any further hardening or performance setting is agreed
+    first and read back.
+
+- [ ] Check whether the terminal has Full Disk Access.
+  - Requested by the owner, 2026-11-16. Reduce motion, the Finder sidebar, and
+    AutoFill all need it, and today each one fails on its own with a different
+    message. The terminal used for testing **lacks** it.
+  - The check has to be a read of a TCC-protected file, not an API call:
+    `AGENTS.md` records `LSSharedFileList` returning an empty list instead of a
+    denial. Reading the first byte of a known protected file and branching on
+    the exit status worked here, but the file has to exist on a fresh install,
+    and the one used must be confirmed on 27.2.1.
+  - Without access, name the steps that will fail and the remedy (System
+    Settings > Privacy & Security > Full Disk Access, add the terminal, restart
+    it), then carry on. Do not abort the menu.
+  - Acceptance criteria: the check reports correctly both with and without the
+    grant, and the steps that need it say so before running.
+
+- [ ] Take the sudo password before installing Homebrew.
+  - Found by the owner on the new install: with no Homebrew present, the run
+    only worked after a manual `sudo -v` first.
+  - Cause: `checkPackageManager` in `core/tabs/common-script.sh` runs the
+    Homebrew installer with `NONINTERACTIVE=1`. Confirmed in the installer's
+    source on 2026-11-16: in that mode it adds `-n` to every `sudo`, which
+    fails instead of prompting, so it needs credentials already cached.
+    `sudo_keepalive` exists in the same file but is not called on that path.
+  - Acceptance criteria: on a Mac without Homebrew, the first run asks for the
+    password once and installs Homebrew without a manual `sudo -v`.
+
+- [ ] Fix `dev-setup.sh` silently installing none of its formulas.
+  - The owner found `uv` missing and installed it by hand. It is wider than
+    `uv`: **12 of the 17 formulas in `DEPENDENCIES` are not installed** --
+    `python`, `pipx`, `cmake`, `make`, `jq`, `fd`, `automake`, `autoconf`,
+    `ffmpeg`, `imagemagick`, `tldr` and `rust`. The five present (`tree`,
+    `unzip`, `ripgrep`, `git`, `uv`) arrived some other way, `uv` by hand at
+    01:19.
+  - Cause: **`tldr` no longer exists in Homebrew 7.0.13** (`brew info tldr`:
+    `No available formula with the name "tldr"`). `_brew_install_batch` sends
+    every package to one `brew install`, and an unknown name fails the whole
+    call before anything is installed. The tab prints "Failed to install one
+    or more of" and carries on, so the run looks finished.
+  - Two fixes, separate commits:
+    - Replace `tldr` with `tlrc`, the official tldr client, which is
+      available.
+    - Make one bad name unable to sink the batch, for example by checking each
+      name before the batch or by retrying one at a time after a failure, and
+      report which names failed.
+  - The seven casks are all installed, so the cask batch is unaffected.
+  - Acceptance criteria: one run installs every formula; a second run skips all
+    of them; an unknown name is reported by name and does not stop the rest.
+
+- [ ] Finder: hide the remaining sidebar items and every tag.
+  - The owner still sees Recents, Shared, Desktop and AirDrop in the sidebar,
+    and tags that are not hidden.
+  - Tags: the rows `fix-finder.sh` writes read back correctly --
+    `FavoriteTagNames` is `( )` and `ShowRecentTags` is `0` -- yet tags still
+    show. So on 27.2.1 the visible tag list is stored somewhere these keys do
+    not reach. Not yet identified.
+  - Sidebar: no manifest row covers Recents, Shared, Desktop or AirDrop. This
+    is the blocked "Finder sidebar" task below, which needs Full Disk Access,
+    and its file is no longer at either recorded name on 27.2.1.
+  - Acceptance criteria: the sidebar shows only the items the blocked task
+    lists, no tags show in the sidebar, and both survive a logout.
+
 ## Next phase: Development environment
 
 - [x] Add `core/tabs/system/git-ssh.sh`.
