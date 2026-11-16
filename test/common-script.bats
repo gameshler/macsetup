@@ -125,3 +125,24 @@ stub_missing_homebrew() {
     [ "$status" -eq 1 ]
     [ "$(grep -c INSTALLER "$CALL_LOG")" -eq 0 ]
 }
+
+@test "ending the sudo session stops the keepalive and forgets the password" {
+    sudo() { echo "SUDO $*" >>"$CALL_LOG"; }
+    sleep 300 >/dev/null 2>&1 3>&- &
+    SUDO_KEEPALIVE_PID=$!
+    SUDO_KEEPALIVE_STARTED=1
+
+    end_sudo_session
+
+    [ "$(grep -c '^SUDO -k$' "$CALL_LOG")" -eq 1 ]
+    [ "$(kill -0 "$SUDO_KEEPALIVE_PID" 2>/dev/null && echo alive || echo gone)" = "gone" ]
+}
+
+@test "ending the sudo session lets a later sudo_keepalive ask again" {
+    sudo() { echo "SUDO $*" >>"$CALL_LOG"; }
+    SUDO_KEEPALIVE_STARTED=1
+
+    end_sudo_session
+
+    [ "${SUDO_KEEPALIVE_STARTED:-0}" = "0" ]
+}

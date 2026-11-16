@@ -41,10 +41,23 @@ sudo_keepalive() {
             sleep 50
         done
     ) >/dev/null 2>&1 &
+    SUDO_KEEPALIVE_PID=$!
 
     SUDO_KEEPALIVE_STARTED=1
     export SUDO_KEEPALIVE_STARTED
     return 0
+}
+
+# Stops the keepalive and drops the cached credentials at once, rather than
+# leaving them valid for sudo's timeout after the last use.
+end_sudo_session() {
+    if [ -n "${SUDO_KEEPALIVE_PID:-}" ]; then
+        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+        SUDO_KEEPALIVE_PID=""
+    fi
+
+    sudo -k 2>/dev/null || true
+    SUDO_KEEPALIVE_STARTED=0
 }
 
 _brew_alias_installed() {

@@ -14,6 +14,31 @@ full_disk_access_granted() {
     head -c 1 "$FULL_DISK_ACCESS_PROBE" >/dev/null 2>&1
 }
 
+_full_disk_access_rows() {
+    sqlite3 "$FULL_DISK_ACCESS_PROBE" \
+        "SELECT COUNT(*) FROM access WHERE service = 'kTCCServiceSystemPolicyAllFiles' AND client = '$1' AND auth_value = 2;" 2>/dev/null
+}
+
+_full_disk_access_still_granted() {
+    local rows
+
+    full_disk_access_granted || return 1
+    rows="$(_full_disk_access_rows "$1")" || return 0
+    [ "$rows" != "0" ]
+}
+
+# `tccutil reset SystemPolicyAllFiles` without an app id clears the grant of
+# every app on the machine, so an empty or malformed id stops here. The id is
+# also interpolated into the read-back query, which the same check protects.
+revoke_full_disk_access() {
+    case "$1" in
+    "" | *[!A-Za-z0-9.-]*) return 1 ;;
+    esac
+
+    tccutil reset SystemPolicyAllFiles "$1" >/dev/null 2>&1 || return 1
+    ! _full_disk_access_still_granted "$1"
+}
+
 check_full_disk_access() {
     full_disk_access_granted && return 0
 

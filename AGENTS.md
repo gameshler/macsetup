@@ -62,6 +62,22 @@ Access. The keepalive lives as long as the menu, and the exported
 asking again. A refused password or a missing grant is reported and the menu
 still opens.
 
+Both are temporary. On every exit -- `q`, an error, `^C`, a closed window or a
+kill -- `cleanup` revokes the terminal's Full Disk Access with `tccutil` and
+ends the sudo session with `sudo -k`. The grant is revoked only if the session
+started with it: a session that started without it is the one where it was
+just granted, and macOS quits the terminal to apply that.
+
+### Never run `tccutil reset` without an app id
+
+`tccutil reset SystemPolicyAllFiles` with no bundle id clears Full Disk Access
+for **every app on the machine**, prints `Successfully reset`, and cannot be
+undone: the decisions are not backed up, and listing them needs the access
+just removed. This was run by mistake on 2026-11-16. `revoke_full_disk_access`
+refuses an empty or malformed id before calling it; keep that guard, keep
+`tccutil` stubbed in every test and harness, and never run it by hand to
+"see what it does".
+
 ## Hard rules
 
 ### Never use `sudo` for a user preference

@@ -9,6 +9,10 @@ export SETTINGS_LIB="$TABS_DIR/settings-lib.sh"
 
 SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/main/start.sh)'
 
+# Set by macOS for a process started from an app bundle, and inherited, so it
+# names the terminal app whose Full Disk Access grant this session uses.
+TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
+
 # Sourcing the shared library runs checkPackageManager, so Homebrew is found,
 # or installed, before the menu opens, and sudo_keepalive becomes available.
 . "$COMMON_SCRIPT"
@@ -16,6 +20,10 @@ SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/mac
 
 cleanup() {
     local status=$?
+
+    end_full_disk_access || true
+    end_sudo_session
+    printf '  Administrator session ended.\n'
 
     rm -rf "$TEMP_DIR"
 
@@ -115,30 +123,48 @@ startup_sudo() {
 }
 
 startup_full_disk_access() {
-    local answer
-
     FULL_DISK_ACCESS=0
     if full_disk_access_granted; then
         FULL_DISK_ACCESS=1
     fi
 
     full_disk_access_status
+    if [ "$FULL_DISK_ACCESS" = "1" ] && [ -n "$TERMINAL_APP_ID" ]; then
+        printf '  It is revoked from %s when you quit.\n\n' "$TERMINAL_APP_ID"
+        return 0
+    fi
     if [ "$FULL_DISK_ACCESS" = "1" ]; then
+        printf '  %sThis terminal has no app id, so it cannot be revoked when you quit.%s\n' "$C_RED" "$C_RESET"
+        printf '  Turn it off in Full Disk Access when you are done.\n\n'
         return 0
     fi
 
-    printf '  To grant it, add this terminal in that pane, quit and reopen the\n'
-    printf '  terminal, then run the setup command again:\n\n'
+    if open "$FULL_DISK_ACCESS_PANE" >/dev/null 2>&1; then
+        printf '  System Settings is open at Full Disk Access. Turn it on for this\n'
+    else
+        printf '  %sCould not open System Settings.%s In Full Disk Access, turn it on for this\n' "$C_RED" "$C_RESET"
+    fi
+    printf '  terminal (%s), let macOS quit and reopen it, then run:\n\n' "${TERMINAL_APP_ID:-unknown app id}"
     printf '    %s\n\n' "$SETUP_COMMAND"
+    printf '  It is granted for that run only and revoked when you quit.\n\n'
 
-    read -rp "  Open the Full Disk Access pane now? [y/N] " answer || answer=""
-    case "$answer" in
-    y | Y | yes | YES)
-        open "$FULL_DISK_ACCESS_PANE" >/dev/null 2>&1 ||
-            printf '  %sCould not open System Settings.%s\n' "$C_RED" "$C_RESET"
-        ;;
-    esac
+    read -rp "  Press Enter to continue without it " || true
     return 1
+}
+
+# Revoked only when this session started with the grant. A session that
+# started without it is the one where the grant was just given, and macOS
+# then quits the terminal to apply it: revoking on that exit would undo it.
+end_full_disk_access() {
+    [ "${FULL_DISK_ACCESS:-0}" = "1" ] || return 0
+
+    if revoke_full_disk_access "$TERMINAL_APP_ID"; then
+        printf '  Full Disk Access revoked from %s.\n' "$TERMINAL_APP_ID"
+        return 0
+    fi
+
+    printf '  Could not revoke Full Disk Access from %s.\n' "${TERMINAL_APP_ID:-this terminal}"
+    printf '  Turn it off in System Settings > Privacy & Security > Full Disk Access.\n'
 }
 
 # A missing grant already stops at its own prompt, so the pause is only for a
@@ -353,6 +379,11 @@ choose_directory() {
 
 main() {
     trap cleanup EXIT
+    # Closing the window, ^C or a kill still ends through cleanup, so the grant
+    # and the password do not outlive the session.
+    trap 'exit 129' HUP
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
     setup_display
     startup_checks
     choose_directory
