@@ -206,6 +206,22 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     and the hotkey works without opening Alfred Preferences.
 
 - [ ] Fix reduce motion not applying.
+  - **Status, 2026-11-16: applied by the owner's Optimize Settings run, UI
+    check outstanding.** The run had Full Disk Access for the session, and
+    `com.apple.universalaccess reduceMotion` now reads `1`, with the plist
+    last written at 04:39. AppKit agrees:
+    `NSWorkspace.accessibilityDisplayShouldReduceMotion` returns `true`, while
+    `accessibilityDisplayShouldReduceTransparency`, whose key is absent,
+    returns `false` as the control. The domain's `History` has no
+    reduce motion entry, which fits a `defaults write` rather than a click.
+  - The decision below is made: the owner chose Full Disk Access for the
+    session, and Optimize Settings names reduce motion up front when the grant
+    is missing. No code change was needed.
+  - The control still exists on 27.2.1 at **Accessibility > Display > Reduce
+    motion** (`display.reduceMotion` in the Accessibility settings
+    extension's strings), next to Reduce transparency, which is a different
+    setting.
+  - Do not mark complete until the owner confirms that toggle shows on.
   - `defaults read com.apple.universalaccess reduceMotion` reports the key does
     not exist. The plist carries `com.apple.macl`, and the terminal lacks Full
     Disk Access, so this is the TCC case `AGENTS.md` already describes: the
@@ -366,9 +382,10 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `killall sharedfilelistd`; `killall Finder` does not reload it.
   - `LSSharedFileList` is a dead end: it returns an empty list and reports
     writes that never reach the file (see `AGENTS.md`). `mysides` is built on
-    it and its cask is disabled, so the candidate tool is `sbedit`, which is
-    not in Homebrew and needs Go or a downloaded binary. That choice is the
-    owner's.
+    it and its cask is disabled. **`sbedit` is rejected by the owner,
+    2026-11-16, as old and unreliable.** Any tool that edits the favorites
+    file is out unless the owner approves it; the remaining route is writing
+    the archive directly, which must read back the same way.
   - The Locations toggles (external disks, servers, Bonjour, CDs) may be
     `com.apple.finder` keys rather than entries in the favorites file. Find
     them by reading the domain before and after toggling each one in Finder
