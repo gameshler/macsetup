@@ -335,6 +335,29 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     both lines. The menu, run from a throwaway copy with `q` piped in, shows
     the not-granted block and exits 0. The granted line was rendered only by
     pointing a copy's probe at a readable file.
+  - **Startup checks, added 2026-11-16 at the owner's request:** both this
+    check and the sudo password now run as soon as the setup command starts,
+    before the menu. `core/main.sh` takes the password once through
+    `sudo_keepalive`, then probes Full Disk Access; without the grant it
+    names what will fail, offers to open the pane
+    (`x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles`)
+    and prints the setup command to rerun after reopening the terminal.
+    Verified against throwaway copies with `sudo` and `open` stubbed as
+    exported functions, behind a probe that refuses to run if the stubs are
+    not live:
+
+    | Case | Result |
+    | --- | --- |
+    | password taken, no grant, any answer but y | prompt consumes the answer, menu opens, exit 0 |
+    | password taken, no grant, answer y | `open` called with the pane URL |
+    | password refused, no grant | "No administrator access" reported, menu still opens |
+    | password taken, grant present | no prompt, no pause: the first input reaches the menu |
+    | password refused, grant present | one pause, then the menu |
+    | a tab run from the menu | sees `SUDO_KEEPALIVE_STARTED=1`, asks for nothing; one `sudo -v` in the whole session |
+
+    Not verified: the real password prompt, which needs a terminal, and
+    whether the pane URL lands on Full Disk Access on 27.2.1 rather than on
+    Privacy & Security. Both need the next real run of the setup command.
   - Requested by the owner, 2026-11-16. Reduce motion, the Finder sidebar, and
     AutoFill all need it, and today each one fails on its own with a different
     message. The terminal used for testing **lacks** it.
