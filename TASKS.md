@@ -158,10 +158,11 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: every manifest row and structural check reads back on
     27.2.1, and the appendix and `SPEC.md` name 27.2.1 as the verified version.
 
-- [ ] Consolidate the settings tabs into one "Optimize settings" menu entry.
-  - **Status: built 2026-11-16, awaiting the owner's live run.** Do not mark
-    this complete until a real run from the menu applies everything and a
-    second run reports every key already applied.
+- [x] Consolidate the settings tabs into one "Optimize settings" menu entry.
+  - **Status: done 2026-11-16, validated live by the owner.** Run from a
+    throwaway clone in a real terminal, Optimize Settings applied everything
+    with one report at the end, and the second run reported every key
+    already applied. The owner reported it working as intended.
   - System Settings now lists four entries: Developer Setup, Git SSH Key,
     Optimize Settings and Shell Setup, confirmed by rendering the menu from a
     throwaway copy with `sudo`, `open`, `tccutil` and `sqlite3` stubbed.
