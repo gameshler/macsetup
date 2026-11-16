@@ -149,6 +149,14 @@ checkPackageManager() {
     fi
 
     printf "%b\n" "Homebrew is not installed"
+
+    # NONINTERACTIVE makes the installer run `sudo -n`, which fails instead of
+    # prompting, so the credentials have to be cached before it starts.
+    if ! sudo_keepalive; then
+        printf "%b\n" "Homebrew needs administrator access to install"
+        exit 1
+    fi
+
     printf "%b\n" "Installing Homebrew..."
 
     if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then

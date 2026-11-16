@@ -80,3 +80,48 @@ brew_stub_install() {
     [ "$status" -eq 1 ]
     printf '%s\n' "$output" | grep -qxF "Failed to install: tldr"
 }
+
+# checkPackageManager's install branch, with nothing real reachable: brew_path
+# reports no Homebrew once, curl hands /bin/bash a script that only logs, and
+# HOME is a scratch directory so .zprofile is never touched.
+stub_missing_homebrew() {
+    FAKE_BREW="$BATS_TEST_TMPDIR/brew"
+    printf '#!/bin/sh\nexit 0\n' >"$FAKE_BREW"
+    chmod +x "$FAKE_BREW"
+    HOME="$BATS_TEST_TMPDIR"
+    export CALL_LOG FAKE_BREW HOME
+
+    brew_path() {
+        if [ -f "$BATS_TEST_TMPDIR/brew-installed" ]; then
+            printf '%s\n' "$FAKE_BREW"
+            return 0
+        fi
+        return 1
+    }
+    sudo_keepalive() {
+        echo "SUDO" >>"$CALL_LOG"
+        return "${SUDO_STATUS:-0}"
+    }
+    curl() {
+        printf '%s\n' 'echo INSTALLER >>"$CALL_LOG"; : >"$(dirname "$FAKE_BREW")/brew-installed"'
+    }
+}
+
+@test "when Homebrew is missing, takes the sudo password before running its installer" {
+    stub_missing_homebrew
+
+    run checkPackageManager
+
+    [ "$status" -eq 0 ]
+    [ "$(tr '\n' ' ' <"$CALL_LOG")" = "SUDO INSTALLER " ]
+}
+
+@test "when Homebrew is missing and sudo is refused, does not run its installer" {
+    stub_missing_homebrew
+    SUDO_STATUS=1
+
+    run checkPackageManager
+
+    [ "$status" -eq 1 ]
+    [ "$(grep -c INSTALLER "$CALL_LOG")" -eq 0 ]
+}
