@@ -7,19 +7,12 @@ export TABS_DIR="$INSTALL_DIR/core/tabs"
 export COMMON_SCRIPT="$TABS_DIR/common-script.sh"
 export SETTINGS_LIB="$TABS_DIR/settings-lib.sh"
 
-. "$SETTINGS_LIB"
+SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/main/start.sh)'
 
-export_brew_env() {
-    local brew_bin
-    for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
-        if [[ -x "$brew_bin" ]]; then
-            eval "$("$brew_bin" shellenv)"
-            return 0
-        fi
-    done
-    return 1
-}
-export_brew_env || true
+# Sourcing the shared library runs checkPackageManager, so Homebrew is found,
+# or installed, before the menu opens, and sudo_keepalive becomes available.
+. "$COMMON_SCRIPT"
+. "$SETTINGS_LIB"
 
 cleanup() {
     local status=$?
@@ -105,6 +98,62 @@ full_disk_access_status() {
     printf '  %sFull Disk Access: not granted to this terminal%s\n' "$C_BOLD" "$C_RESET"
     printf '  %s%s will fail without it.%s\n' "$C_DIM" "$FULL_DISK_ACCESS_STEPS" "$C_RESET"
     printf '  %sSystem Settings > Privacy & Security > Full Disk Access%s\n\n' "$C_DIM" "$C_RESET"
+}
+
+FULL_DISK_ACCESS_PANE="x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
+
+# Taken here rather than in a tab: the keepalive lives as long as the menu,
+# and the exported SUDO_KEEPALIVE_STARTED stops each tab asking again.
+startup_sudo() {
+    if sudo_keepalive; then
+        printf '\n'
+        return 0
+    fi
+
+    printf '  %sNo administrator access.%s Steps that need it will ask again or fail.\n\n' "$C_RED" "$C_RESET"
+    return 1
+}
+
+startup_full_disk_access() {
+    local answer
+
+    FULL_DISK_ACCESS=0
+    if full_disk_access_granted; then
+        FULL_DISK_ACCESS=1
+    fi
+
+    full_disk_access_status
+    if [ "$FULL_DISK_ACCESS" = "1" ]; then
+        return 0
+    fi
+
+    printf '  To grant it, add this terminal in that pane, quit and reopen the\n'
+    printf '  terminal, then run the setup command again:\n\n'
+    printf '    %s\n\n' "$SETUP_COMMAND"
+
+    read -rp "  Open the Full Disk Access pane now? [y/N] " answer || answer=""
+    case "$answer" in
+    y | Y | yes | YES)
+        open "$FULL_DISK_ACCESS_PANE" >/dev/null 2>&1 ||
+            printf '  %sCould not open System Settings.%s\n' "$C_RED" "$C_RESET"
+        ;;
+    esac
+    return 1
+}
+
+# A missing grant already stops at its own prompt, so the pause is only for a
+# refused password on its own.
+startup_checks() {
+    local sudo_ok=1
+
+    clear_screen
+    header "Startup checks"
+    printf '\n'
+
+    startup_sudo || sudo_ok=0
+    if startup_full_disk_access && [ "$sudo_ok" = "0" ]; then
+        pause || true
+    fi
 }
 
 meta_field() {
@@ -305,12 +354,7 @@ choose_directory() {
 main() {
     trap cleanup EXIT
     setup_display
-
-    FULL_DISK_ACCESS=0
-    if full_disk_access_granted; then
-        FULL_DISK_ACCESS=1
-    fi
-
+    startup_checks
     choose_directory
 }
 

@@ -55,6 +55,13 @@ script in isolation, export them first.
 non-login process. It inherits the exported environment and nothing else. It
 does not read `~/.zprofile` or `~/.zshrc`.
 
+Before the menu opens, `core/main.sh` sources both libraries -- which finds or
+installs Homebrew -- takes the sudo password once, and checks Full Disk
+Access. The keepalive lives as long as the menu, and the exported
+`SUDO_KEEPALIVE_STARTED` makes every tab's `sudo_keepalive` return without
+asking again. A refused password or a missing grant is reported and the menu
+still opens.
+
 ## Hard rules
 
 ### Never use `sudo` for a user preference
