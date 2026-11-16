@@ -334,7 +334,24 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: on a Mac without Homebrew, the first run asks for the
     password once and installs Homebrew without a manual `sudo -v`.
 
-- [ ] Fix `dev-setup.sh` silently installing none of its formulas.
+- [x] Fix `dev-setup.sh` silently installing none of its formulas.
+  - **Status: done 2026-11-16, verified on this machine.** Two commits:
+    `_brew_install_batch` now retries a failed batch one package at a time
+    and names only the packages that fail, and `tldr` is replaced by `tlrc`.
+  - `test/common-script.bats` covers the batch: one call when every name
+    exists, the other names still installed when one is unknown, and a
+    failure naming only the unknown one. With the retry removed, the last two
+    fail. `bats test/` 50 of 50.
+  - First live run of the tab: the 12 missing formulas installed in a single
+    batch, `Installed: python pipx cmake make jq fd automake autoconf ffmpeg
+    imagemagick tlrc rust`, exit 0. Second run: exit 0, nothing installed,
+    every formula and cask reported already installed. All 17 formulas are
+    listed by `brew list --formula --versions`, and `tldr --version` reports
+    `tlrc v1.13.1`.
+  - Not exercised live: the retry path itself, because the repository no
+    longer contains an unknown name. It is covered only by the stubbed tests.
+  - Checked at the same time: every other formula and cask named anywhere in
+    the repository still resolves in Homebrew 7.0.13.
   - The owner found `uv` missing and installed it by hand. It is wider than
     `uv`: **12 of the 17 formulas in `DEPENDENCIES` are not installed** --
     `python`, `pipx`, `cmake`, `make`, `jq`, `fd`, `automake`, `autoconf`,
