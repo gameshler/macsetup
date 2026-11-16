@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-# Cleanup: empty the Trash, opt out of Apple Intelligence.
+# Cleanup: empty the Trash and old logs, keep Spaces in a fixed order.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 cleanup_system() {
     printf "%b\n" "Performing system cleanup..."
 
     apply_settings <<'EOF'
-com.apple.dock                            | mru-spaces | bool | false | Dock
-com.apple.CloudSubscriptionFeatures.optIn | 545129924  | bool | false |
+com.apple.dock | mru-spaces | bool | false | Dock
 EOF
 
     printf "%b\n" "Emptying Trash..."

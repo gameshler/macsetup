@@ -36,6 +36,7 @@ optimize_settings() {
     # Before Alfred: Alfred cannot take cmd+space while Spotlight holds it.
     run_area "Spotlight" spotlight
     run_area "Siri suggestions" disable_siri_suggestions
+    run_area "Apple Intelligence" disable_ai
     run_area "Alfred" alfred
     run_area "Dock and Desktop" desktop_dock
     run_area "Finder" fix_finder
