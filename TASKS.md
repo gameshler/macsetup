@@ -303,10 +303,26 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     list of bundle ids that are turned off. No "learn" list exists yet,
     presumably because none has been unchecked. `com.apple.siri.sirisuggestions`
     holds only `osInstalledDates`.
-  - Method: a fresh read-only snapshot of every plist in
-    `~/Library/Preferences` and `ByHost` was taken at 05:15 into
-    `.context/prefs-before/`. The owner unchecks both boxes for every app in
-    the sheet, then a second snapshot is diffed against it.
+  - **Diff result, 2026-11-16,** after the owner unchecked both boxes for
+    every app in the sheet: `com.apple.suggestions
+    AppCanShowSiriSuggestionsBlacklist` went from empty to the eleven apps
+    the sheet lists, `com.apple.iBooksX`, `com.apple.iCal`,
+    `com.apple.AddressBook`, `com.apple.FaceTime`, `com.apple.mail`,
+    `com.apple.Maps`, `com.apple.MobileSMS`, `com.apple.news`,
+    `com.apple.podcasts`, `com.apple.reminders` and `com.apple.Safari`. Every
+    other changed file held only window positions, counters or timestamps.
+  - **Built, 2026-11-16:** `core/settings/siri.sh` runs as "Siri
+    suggestions" after Spotlight, through the new `ensure_listed` engine
+    helper that Spotlight's hide rules now share. `test/siri.bats`, two
+    tests; the helper's guards were mutation-checked through both suites.
+    Live, against the owner's already-set domain: all eleven verified and the
+    array left byte-identical. `bats test/` 88 of 88.
+  - **Open: "Learn from this application".** Unchecking it changed nothing
+    readable. Either it is stored where Full Disk Access is needed, or the
+    checkbox was unavailable because Siri is off (`Assistant Enabled = 0`);
+    the owner to confirm which.
+  - Not proven: that a list written by `defaults` takes effect on a Mac where
+    the pane never wrote it. Check on the next fresh install.
   - Acceptance criteria: Siri > Suggestions and per-app suggestion toggles all
     read off.
 
