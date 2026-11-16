@@ -309,6 +309,32 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     first and read back.
 
 - [ ] Check whether the terminal has Full Disk Access.
+  - **Status: built 2026-11-16, verified without the grant only.** Do not
+    mark this complete until the menu has been opened once from a terminal
+    that has Full Disk Access and shows `Full Disk Access: granted`.
+  - `full_disk_access_granted` and `check_full_disk_access "<step>"` live in
+    `settings-lib.sh`. The menu probes once at startup and prints the status
+    on the home screen, naming the steps that will fail and where to grant
+    it. `remove-animations.sh` and `system-cleanup.sh` call the check before
+    the step that needs it, and carry on either way.
+  - Probe: `/Library/Application Support/com.apple.TCC/TCC.db`. On 27.2.1 the
+    per-user `~/Library/Application Support/com.apple.TCC/TCC.db` **does not
+    exist**, so it cannot be the probe. The system file exists, is
+    `-rw-r--r-- root wheel`, and `head -c 1` on it returns `Operation not
+    permitted`, while `head -c 1` on `com.apple.finder.plist` in the same
+    session succeeds -- so the refusal is TCC, not permissions or a broken
+    read.
+  - `~/.Trash` is TCC-protected on 27.2.1 as well (`ls` returns `Operation
+    not permitted`), which confirms emptying the Trash belongs on the list.
+  - The Finder sidebar and AutoFill tasks are not implemented, so they are
+    not named yet. Each adds itself when it is built.
+  - `test/full-disk-access.bats`, six tests: readable, refused and missing
+    probe; the announcement naming the step and where to grant it; and
+    silence when granted. `bats test/` 58 of 58.
+  - Live, without the grant: the real probe returns 1 and the check prints
+    both lines. The menu, run from a throwaway copy with `q` piped in, shows
+    the not-granted block and exits 0. The granted line was rendered only by
+    pointing a copy's probe at a readable file.
   - Requested by the owner, 2026-11-16. Reduce motion, the Finder sidebar, and
     AutoFill all need it, and today each one fails on its own with a different
     message. The terminal used for testing **lacks** it.
