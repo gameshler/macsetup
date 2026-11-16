@@ -223,6 +223,33 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     key already applied; `shellcheck`, `shfmt`, `bats` and `typos` pass.
 
 - [ ] Fix the Alfred cmd+space hotkey not applying.
+  - **Status: fixed 2026-11-16, awaiting the owner's live check.** Do not mark
+    this complete until a run with this Mac's local folder moved aside binds
+    cmd+space and the hotkey opens Alfred without visiting its preferences.
+  - Confirmed read-only on this machine before the change: `prefs.json` was
+    written at 23:48 on 2026-11-15 with `localhash`
+    `a893a2b86f5f53d443d65a4acf51e39fe0ffa663`, three minutes before the tab
+    ran, and the hand-set `local/<hash>/hotkey/prefs.plist` holds exactly
+    `default = { key = 49; mod = 1048576; string = " " }`, which is what the
+    step writes.
+  - `local_prefs_dir` now returns `local/<localhash>` from `prefs.json`
+    instead of the first folder that happens to exist, and `set_hotkey`
+    creates it. Choosing by id also stops a synced bundle with several Macs'
+    folders getting the hotkey written into the wrong one. The id becomes a
+    path, so anything but 40 lowercase hex characters is refused.
+  - `test/alfred.bats`, six tests against a scratch `HOME` with real
+    `plutil`: no local folder yet, binds cmd+space; another Mac's folder
+    present, writes only this Mac's; no `prefs.json`, fails with the launch
+    hint, creates nothing, and the failure reaches the report; a 40-character
+    id that climbs out of `local/`, and a short hex id, are each refused with
+    the scratch tree unchanged. Each guard was mutation-checked; the first
+    version of the traversal test passed without the hex guard, because the
+    length check refused it first, and was lengthened to 40 characters.
+    `bats test/` 81 of 81; `shellcheck`, `shfmt` and `typos` clean.
+  - Not changed: the bundle path is still the default one, not `current` from
+    `prefs.json`. A Mac syncing its Alfred preferences through Dropbox or
+    iCloud keeps them elsewhere and the step reports no bundle; that needs
+    its own change if the owner ever syncs.
   - The owner had to set the hotkey by hand in Alfred after running the tab.
   - Likely cause, from file timestamps: the tab wrote the web search prefs at
     23:51:04 on 2026-11-15, but
