@@ -292,6 +292,21 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `com.apple.siri.sirisuggestions`, `com.apple.assistant.support`
     (`Assistant Enabled` already reads `0`). Keys for the per-app "Show
     suggestions from" list are not yet identified.
+  - **Controls on 27.2.1, from the English strings of
+    `SiriPreferenceExtension.appex`, 2026-11-16:** the only suggestion
+    settings are the per-app sheet behind "Siri Suggestions & Privacy…", with
+    two checkboxes per app: "Show Siri Suggestions in application" and
+    "Learn from this application" (Contacts and FaceTime word the first one
+    differently).
+  - Read-only state: `com.apple.suggestions` holds an empty
+    `AppCanShowSiriSuggestionsBlacklist`, so the "show" list is likely a
+    list of bundle ids that are turned off. No "learn" list exists yet,
+    presumably because none has been unchecked. `com.apple.siri.sirisuggestions`
+    holds only `osInstalledDates`.
+  - Method: a fresh read-only snapshot of every plist in
+    `~/Library/Preferences` and `ByHost` was taken at 05:15 into
+    `.context/prefs-before/`. The owner unchecks both boxes for every app in
+    the sheet, then a second snapshot is diffed against it.
   - Acceptance criteria: Siri > Suggestions and per-app suggestion toggles all
     read off.
 
