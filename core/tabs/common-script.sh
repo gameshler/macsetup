@@ -88,18 +88,36 @@ _brew_install_batch() {
 
     if [ "$_kind" = cask ]; then
         sudo_keepalive || printf "%b\n" "No held sudo session; casks may prompt individually."
-        if brew install --cask --no-ask "$@"; then
-            printf "%b\n" "Installed: $*"
-            return 0
-        fi
-    else
-        if brew install --formula --no-ask "$@"; then
-            printf "%b\n" "Installed: $*"
-            return 0
-        fi
     fi
 
-    printf "%b\n" "Failed to install one or more of: $*"
+    if brew install "--$_kind" --no-ask "$@"; then
+        printf "%b\n" "Installed: $*"
+        return 0
+    fi
+
+    _brew_install_each "$_kind" "$@"
+}
+
+# One unknown name fails a whole `brew install` before anything is installed,
+# so a batch failure is retried one package at a time.
+_brew_install_each() {
+    _kind="$1"
+    shift
+    _failed=""
+
+    printf "%b\n" "The batch failed; retrying one package at a time..."
+
+    for _pkg in "$@"; do
+        _brew_alias_installed "$_kind" "$_pkg" && continue
+        brew install "--$_kind" --no-ask "$_pkg" || _failed="$_failed $_pkg"
+    done
+
+    if [ -z "$_failed" ]; then
+        printf "%b\n" "Installed: $*"
+        return 0
+    fi
+
+    printf "%b\n" "Failed to install:$_failed"
     return 1
 }
 

@@ -395,9 +395,13 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `SC1090` and `SC1091` are excluded because every tab script sources
 `"$COMMON_SCRIPT"` through a variable that shellcheck cannot resolve.
 
-`bats` covers `core/tabs/settings-lib.sh` only. Most of this repository changes
-the machine it runs on and cannot be tested; the engine is the exception,
-because deciding what to write and whether it took is string handling. Use plain
+`bats` covers `core/tabs/settings-lib.sh` and the batch install in
+`core/tabs/common-script.sh`. Most of this repository changes the machine it
+runs on and cannot be tested; those two are the exception, because deciding
+what to write or install and whether it took is string handling.
+`test/common-script.bats` stubs `brew` as a shell function and skips when no
+real Homebrew is present, because sourcing the library without one runs the
+Homebrew installer. Use plain
 `$status` and `$output` checks -- `run` captures both and always returns 0
 itself. Do not add `bats-assert` or `bats-support`: they have to be vendored
 into a `test_helper/` directory in the repository, which is more weight than the
@@ -501,7 +505,8 @@ logic but not whether a key is the one macOS actually reads. A green pipeline
 says nothing about whether a setting applied.
 
 - Run `shellcheck` on every changed script before reporting done.
-- Run `bats test/` when `core/tabs/settings-lib.sh` changes.
+- Run `bats test/` when `core/tabs/settings-lib.sh` or
+  `core/tabs/common-script.sh` changes.
 - For a settings change, read every key back with `defaults read` as the
   logged-in user and confirm against the System Settings UI.
 - For an install change, run the affected menu entry twice. The second run must
