@@ -340,8 +340,32 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     volume, and removing them means disabling SIP, which contradicts the
     security goal. The deliverable is disable, not remove, for anything under
     `/System`.
-  - Removable: `/Applications/Microsoft 365 Copilot Shim.app`, presumably from
-    the Office install. Confirm its origin before removing it.
+  - **Origin confirmed, 2026-11-16:** `Microsoft 365 Copilot Shim.app` is
+    signed by Microsoft (Team ID `UBF8T346G9`) and installed by the Office
+    package as its own receipt, `com.microsoft.m365copilot.shim` 0.2607.0601,
+    next to the Word, Excel and PowerPoint receipts. Nothing else depends on
+    it.
+  - **Built, 2026-11-16:** `core/settings/ai.sh` runs as "Apple Intelligence"
+    after Siri suggestions. It owns the `CloudSubscriptionFeatures.optIn
+    545129924` row, moved from Cleanup, and removes the shim with `sudo rm`
+    of its exact path, forgetting the receipt only once the app is confirmed
+    gone. `test/ai.bats`, three tests, each guard mutation-checked; `bats
+    test/` 91 of 91. Not run live: it needs the owner's sudo session.
+  - Already off, read-only: `545129924` reads `0`, `Assistant Enabled` reads
+    `0`, and the ChatGPT extension reports `isEnabled = 0` in
+    `com.apple.generativepartnerservicesettings`. The pane's AI controls on
+    27.2.1 are the Apple Intelligence switch and an Extensions group holding
+    ChatGPT.
+  - Open: the Office installer adds the shim again on reinstall, and the
+    full-suite path passes no choices file. The core path already deselects
+    `com.microsoft.defender.shim`; the shim's choice identifier needs
+    `installer -showChoicesXML` on the downloaded package before it is added.
+    Whether Microsoft AutoUpdate restores it is unknown.
+  - Model downloads: `/System/Library/AssetsV2` holds 4.2 GB, but the
+    `UAF_FM_*` generative model folders are TCC-refused, so they cannot be
+    sized here. MobileAsset manages them; deleting them by hand is not safe
+    and they would return. Turning Apple Intelligence off is what releases
+    them.
   - Also in scope: ChatGPT and other partner extensions, writing tools, and
     the on-device model downloads, which turning Apple Intelligence off should
     release. Keys not yet identified.
