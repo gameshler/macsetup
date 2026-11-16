@@ -153,12 +153,51 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `com.apple.LSSharedFileList.FavoriteItems.sfl3` nor `.sfl4` exists by name
     on 27.2.1; `stat` on a known path worked through TCC on 15, so the file
     has been renamed or moved.
-  - `AGENTS.md` cites `core/main.sh:49` and `:53` for the menu discovery rule;
-    those lines are now `core/main.sh:173` and `:177`.
+  - ~~`AGENTS.md` cites `core/main.sh:49` and `:53` for the menu discovery
+    rule.~~ Updated to `core/main.sh:269` and `:273` with the consolidation.
   - Acceptance criteria: every manifest row and structural check reads back on
     27.2.1, and the appendix and `SPEC.md` name 27.2.1 as the verified version.
 
 - [ ] Consolidate the settings tabs into one "Optimize settings" menu entry.
+  - **Status: built 2026-11-16, awaiting the owner's live run.** Do not mark
+    this complete until a real run from the menu applies everything and a
+    second run reports every key already applied.
+  - System Settings now lists four entries: Developer Setup, Git SSH Key,
+    Optimize Settings and Shell Setup, confirmed by rendering the menu from a
+    throwaway copy with `sudo`, `open`, `tccutil` and `sqlite3` stubbed.
+  - The nine areas moved with `git mv` to `core/settings/`, outside
+    `core/tabs/`, so the menu never walks them. `core/main.sh` exports their
+    path as `SETTINGS_DIR`. Each module now only defines functions: the
+    library sourcing, the trailing call and the per-area `settings_report`
+    are gone.
+  - `core/tabs/system/optimize-settings.sh` sources every module and runs
+    the areas in this order: Security, Spotlight, Alfred, Dock and Desktop,
+    Finder, Trackpad, Animations, Display, Cleanup. It ends with one
+    `settings_report`.
+  - An area that stops before finishing is named in that report. Before the
+    move, the display tab printed no report when it gave up, so a consolidated
+    run would otherwise have ended "all verified" over a skipped display.
+    Alfred's "could not quit Alfred" branch now returns 1 for the same reason.
+    The Cleanup step's unprivileged `find /var/log`, which exits 1 on any
+    root-only directory, is now `|| true` so that cannot read as a stopped
+    area; its behavior is unchanged.
+  - Full Disk Access is announced once at the start. The step list moved from
+    `core/main.sh` into `FULL_DISK_ACCESS_STEPS` in `settings-lib.sh`, so the
+    home screen and the run share it, and the per-step checks in the
+    animations and cleanup areas are gone.
+  - `test/optimize-settings.bats`, seven tests. Five run the real optimizer
+    against stub modules: the exact order, with Spotlight before Alfred; one
+    all-verified line on a clean run; a stopped area named in the one report
+    while later areas still run; the Full Disk Access announcement once and
+    before any area; and silence with the grant. One checks that an unset
+    `SETTINGS_DIR` stops the run before sourcing anything. One sources the
+    real modules behind logging stubs for every command they use: it fails
+    if a module does work when sourced or an area function is renamed.
+    Each guard was mutation-checked. `bats test/` 75 of 75; `shellcheck`,
+    `shfmt` and `typos` clean.
+  - Not done here: restarts are still per area, so Finder and Dock restart
+    more than once in a run. Harmless, and not worth a change to the engine
+    yet.
   - The owner wants one option under System Settings that applies every
     settings change, instead of one menu entry per area. Approved 2026-11-16.
   - In scope: `alfred.sh`, `desktop-dock.sh`, `display.sh`, `fix-finder.sh`,
@@ -196,8 +235,9 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `~/Library/Application Support/Alfred/` carries `localhash`. Create the
     directory from that rather than requiring it to exist.
   - Second cause: Spotlight was disabled at 00:14:10, after the Alfred tab
-    ran, so cmd+space was still held by Spotlight at the time. The
-    consolidation task fixes the order.
+    ran, so cmd+space was still held by Spotlight at the time. **Fixed by
+    the consolidation:** Optimize Settings runs Spotlight before Alfred, and
+    a test fails if that order changes.
   - Acceptance criteria: on a fresh Alfred install, one run binds cmd+space
     and the hotkey works without opening Alfred Preferences.
 
