@@ -356,6 +356,21 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: one run installs every formula; a second run skips all
     of them; an unknown name is reported by name and does not stop the rest.
 
+- [ ] Make the `[[ ]]` assertions in `test/settings-lib.bats` able to fail.
+  - Found 2026-11-16 while writing `test/common-script.bats`. `bats` runs
+    under `/bin/bash` 3.2.57, where a failing `[[ ]]` does not trip `set -e`.
+    Only the last command in a test decides its result, so a `[[ ]]` anywhere
+    else passes whatever it compares. Reproduced: a test of
+    `[[ "a" == "b" ]]` followed by `true` reports `ok`.
+  - `test/settings-lib.bats` has 43 `[[ ]]` assertions across 26 tests, and
+    13 of those tests end in one. The other 30 assertions can never fail. The
+    mutation checks recorded for `verify_value` still caught their mutants,
+    so some coverage is real, but it is unknown how much.
+  - Fix: rewrite each as `[ ]`, a `grep -q` on `$output`, or append
+    `|| false`. Then mutation-check the engine again.
+  - Acceptance criteria: changing any one asserted string in a test makes
+    that test fail.
+
 - [ ] Finder: hide the remaining sidebar items and every tag.
   - The owner still sees Recents, Shared, Desktop and AirDrop in the sidebar,
     and tags that are not hidden.
