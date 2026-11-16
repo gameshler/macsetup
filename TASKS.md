@@ -308,10 +308,15 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     Firewall > Options; any further hardening or performance setting is agreed
     first and read back.
 
-- [ ] Check whether the terminal has Full Disk Access.
-  - **Status: built 2026-11-16, verified without the grant only.** Do not
-    mark this complete until the menu has been opened once from a terminal
-    that has Full Disk Access and shows `Full Disk Access: granted`.
+- [x] Check whether the terminal has Full Disk Access.
+  - **Status: done 2026-11-16, validated live by the owner.** Run from a
+    throwaway clone of the branch in a real terminal, the owner reported every
+    check as expected: one password prompt; System Settings opening at Full
+    Disk Access without the grant; after reopening the terminal,
+    `Full Disk Access: granted` with the terminal's app id; on `q`, the grant
+    revoked and the administrator session ended; the toggle off in System
+    Settings afterwards; and `sudo -n true` failing after the quit. That
+    closes the real per-app revoke and pane URL gaps recorded below.
   - `full_disk_access_granted` and `check_full_disk_access "<step>"` live in
     `settings-lib.sh`. The menu probes once at startup and prints the status
     on the home screen, naming the steps that will fail and where to grant
