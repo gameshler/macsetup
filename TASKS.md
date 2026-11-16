@@ -324,6 +324,18 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     grant, and the steps that need it say so before running.
 
 - [ ] Take the sudo password before installing Homebrew.
+  - **Status: fixed 2026-11-16, not yet validated on a Mac without
+    Homebrew.** `checkPackageManager` now calls `sudo_keepalive` before the
+    installer and exits 1 without running it when sudo is refused. Do not
+    mark this complete until the next fresh install shows a single password
+    prompt and Homebrew installing with no manual `sudo -v`.
+  - Two tests in `test/common-script.bats` drive the install branch with
+    `brew_path`, `sudo_keepalive` and `curl` stubbed as functions and `HOME`
+    in a scratch directory: the password is taken before the installer
+    runs, and a refused password means the installer never runs. Both were
+    red before the change. `bats test/` 52 of 52.
+  - `sudo -v` reads the password from the terminal, not stdin, so asking at
+    source time cannot swallow the menu's next choice.
   - Found by the owner on the new install: with no Homebrew present, the run
     only worked after a manual `sudo -v` first.
   - Cause: `checkPackageManager` in `core/tabs/common-script.sh` runs the
