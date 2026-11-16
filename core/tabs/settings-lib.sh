@@ -5,6 +5,23 @@ SETTINGS_FAILED_KEYS=""
 
 _settings_activate="/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings"
 
+# Present on every install and world-readable (0644), so ordinary permissions
+# never refuse it: only TCC does, and only without Full Disk Access. The
+# per-user TCC.db is not usable, it no longer exists on macOS 27.
+FULL_DISK_ACCESS_PROBE="/Library/Application Support/com.apple.TCC/TCC.db"
+
+full_disk_access_granted() {
+    head -c 1 "$FULL_DISK_ACCESS_PROBE" >/dev/null 2>&1
+}
+
+check_full_disk_access() {
+    full_disk_access_granted && return 0
+
+    printf "%b\n" "$1 needs Full Disk Access, which this terminal does not have, so it will fail."
+    printf "%b\n" "Grant it in System Settings > Privacy & Security > Full Disk Access, then quit and reopen the terminal."
+    return 1
+}
+
 _settings_trim() {
     local s="$1"
     s="${s#"${s%%[![:space:]]*}"}"

@@ -85,6 +85,12 @@ has Full Disk Access. The domain still reads fine, so only the read-back
 distinguishes "protected" from "applied". A row against such a domain is
 reported as failed on every run and is a manual step, not a bug to fix.
 
+A step that needs Full Disk Access calls `check_full_disk_access "<step>"`
+from `settings-lib.sh` before it runs, and is named in
+`FULL_DISK_ACCESS_STEPS` in `core/main.sh`, which the home screen prints when
+the grant is missing. The probe reads the system `TCC.db`, which is mode 0644,
+so only TCC can refuse it.
+
 ### Write scalar preferences through the manifest, never by hand
 
 `core/tabs/settings-lib.sh` holds `apply_settings`, which reads pipe-delimited

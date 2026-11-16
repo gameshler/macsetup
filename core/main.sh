@@ -7,6 +7,8 @@ export TABS_DIR="$INSTALL_DIR/core/tabs"
 export COMMON_SCRIPT="$TABS_DIR/common-script.sh"
 export SETTINGS_LIB="$TABS_DIR/settings-lib.sh"
 
+. "$SETTINGS_LIB"
+
 export_brew_env() {
     local brew_bin
     for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
@@ -89,6 +91,22 @@ pause() {
     read -rp "  Press Enter to continue "
 }
 
+# Every step that calls check_full_disk_access, as named to the user.
+FULL_DISK_ACCESS_STEPS="Reduce motion and emptying the Trash"
+
+# Probed once at startup: a grant only takes effect after the terminal is
+# reopened, which restarts the menu anyway.
+full_disk_access_status() {
+    if [ "$FULL_DISK_ACCESS" = "1" ]; then
+        printf '  %sFull Disk Access: granted%s\n\n' "$C_DIM" "$C_RESET"
+        return 0
+    fi
+
+    printf '  %sFull Disk Access: not granted to this terminal%s\n' "$C_BOLD" "$C_RESET"
+    printf '  %s%s will fail without it.%s\n' "$C_DIM" "$FULL_DISK_ACCESS_STEPS" "$C_RESET"
+    printf '  %sSystem Settings > Privacy & Security > Full Disk Access%s\n\n' "$C_DIM" "$C_RESET"
+}
+
 meta_field() {
     local file="$1" field="$2"
     [ -r "$file" ] || return 0
@@ -162,6 +180,10 @@ draw_menu() {
     clear_screen
     header "$crumb"
     printf '\n'
+
+    if [ "$depth" -eq 0 ]; then
+        full_disk_access_status
+    fi
 
     ENTRIES=()
     LABELS=()
@@ -283,6 +305,12 @@ choose_directory() {
 main() {
     trap cleanup EXIT
     setup_display
+
+    FULL_DISK_ACCESS=0
+    if full_disk_access_granted; then
+        FULL_DISK_ACCESS=1
+    fi
+
     choose_directory
 }
 
