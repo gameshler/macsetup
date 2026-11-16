@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 
-# menu: Animations
-# desc: Turn off window and Mission Control animations
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Animations: turn off window and Mission Control animations.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 remove_animations() {
     printf "%b\n" "Reducing motion and animations on macOS..."
-    check_full_disk_access || true
 
     apply_settings <<'EOF'
 com.apple.universalaccess | reduceMotion                       | bool  | true  |
@@ -28,5 +24,3 @@ com.apple.mail           | DisableReplyAnimations              | bool  | true  |
 com.apple.mail           | DisableSendAnimations               | bool  | true  |
 EOF
 }
-
-remove_animations

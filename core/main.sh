@@ -6,6 +6,8 @@ export DOT_FILES="$INSTALL_DIR/dotfiles"
 export TABS_DIR="$INSTALL_DIR/core/tabs"
 export COMMON_SCRIPT="$TABS_DIR/common-script.sh"
 export SETTINGS_LIB="$TABS_DIR/settings-lib.sh"
+# Outside TABS_DIR so the menu does not list them; optimize-settings.sh runs them.
+export SETTINGS_DIR="$INSTALL_DIR/core/settings"
 
 SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/main/start.sh)'
 

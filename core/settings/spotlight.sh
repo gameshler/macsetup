@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Spotlight
-# desc: Turn Spotlight off and free cmd+space
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Spotlight: turn it off and free cmd+space.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 SYMBOLIC_HOTKEYS_PLIST="$HOME/Library/Preferences/com.apple.symbolichotkeys.plist"
 
@@ -72,8 +69,4 @@ spotlight() {
     disable_spotlight_categories
     disable_spotlight_hotkeys
     apply_and_restart
-
-    settings_report
 }
-
-spotlight

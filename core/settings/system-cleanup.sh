@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: System Cleanup
-# desc: Empty Trash, opt out of Apple Intelligence
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Cleanup: empty the Trash, opt out of Apple Intelligence.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 cleanup_system() {
     printf "%b\n" "Performing system cleanup..."
@@ -15,7 +12,6 @@ com.apple.CloudSubscriptionFeatures.optIn | 545129924  | bool | false |
 EOF
 
     printf "%b\n" "Emptying Trash..."
-    check_full_disk_access || true
     if [ ! -d "$HOME/.Trash" ]; then
         printf "%b\n" "No ~/.Trash directory; nothing to empty."
     elif ! find "$HOME/.Trash" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null; then
@@ -26,9 +22,5 @@ EOF
     printf "%b\n" "Removing old log files..."
     sudo_keepalive || printf "%b\n" "No held sudo session; log cleanup may prompt or be skipped."
     find /var/log -type f \( -name "*.log" -o -name "*.old" -o -name "*.err" \) \
-        -mtime +30 -exec sudo rm -f {} +
-
-    settings_report
+        -mtime +30 -exec sudo rm -f {} + || true
 }
-
-cleanup_system

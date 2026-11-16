@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Dock and Desktop
-# desc: Small dock on the left, hidden desktop icons
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Dock and Desktop: a small dock on the left, hidden desktop icons.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 set_dock_contents() {
     local system_settings='<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file:///System/Applications/System%20Settings.app/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict><key>tile-type</key><string>file-tile</string></dict>'
@@ -33,8 +30,4 @@ com.apple.dock          | orientation                      | string | left  | Do
 com.apple.dock          | launchanim                       | bool   | false | Dock
 com.apple.dock          | show-recents                     | bool   | false | Dock
 EOF
-
-    settings_report
 }
-
-desktop_dock

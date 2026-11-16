@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Alfred
-# desc: Bind Alfred to cmd+space, trim its web searches
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Alfred: bind it to cmd+space and trim its web searches.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 ALFRED_BUNDLE="$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences"
 WEBSEARCH="$ALFRED_BUNDLE/preferences/features/websearch"
@@ -138,7 +135,7 @@ alfred() {
 
     if ! quit_alfred; then
         printf "%b\n" "Leaving the Alfred preferences alone."
-        return 0
+        return 1
     fi
 
     disable_web_searches
@@ -150,10 +147,4 @@ alfred() {
             verify_value "Alfred relaunch" "running" "not running" exact || true
         fi
     fi
-
-    printf "%b\n" "Spotlight's cmd+space must be off for Alfred to receive it; the Spotlight tab does that."
-
-    settings_report
 }
-
-alfred

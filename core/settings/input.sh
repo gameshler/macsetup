@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Trackpad
-# desc: Tap to click, natural scrolling off
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Trackpad: tap to click, natural scrolling off.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 configure_input() {
     printf "%b\n" "Configuring trackpad input..."
@@ -18,8 +15,4 @@ NSGlobalDomain                                     | com.apple.swipescrolldirect
 EOF
 
     printf "%b\n" "Trackpad settings take effect at the next login."
-
-    settings_report
 }
-
-configure_input

@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Display
-# desc: Switch the built-in display to More Space
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Display: switch the built-in display to More Space.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 main_display_block() {
     displayplacer list 2>/dev/null | awk '
@@ -65,7 +62,7 @@ set_more_space() {
 
     if [ "$count" -gt 1 ]; then
         printf "%b\n" "$count displays are connected; set More Space by hand in System Settings."
-        printf "%b\n" "This tab only configures a Mac with a single built-in display."
+        printf "%b\n" "This step only configures a Mac with a single built-in display."
         return 1
     fi
 
@@ -103,9 +100,5 @@ set_more_space() {
 display() {
     printf "%b\n" "Configuring the display..."
 
-    if set_more_space; then
-        settings_report
-    fi
+    set_more_space
 }
-
-display

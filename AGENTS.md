@@ -27,10 +27,11 @@ the only part of the repository that can be tested without changing the machine.
 | Path | Role |
 | --- | --- |
 | `start.sh` | Bootstrap. Downloads the repository zip, unpacks it to `~/Downloads/macsetup`, runs `core/main.sh`. |
-| `core/main.sh` | Interactive menu. Walks `core/tabs/` and runs the chosen script. Sets `DOT_FILES`, `TABS_DIR`, `COMMON_SCRIPT`. |
+| `core/main.sh` | Interactive menu. Walks `core/tabs/` and runs the chosen script. Sets `DOT_FILES`, `TABS_DIR`, `COMMON_SCRIPT`, `SETTINGS_LIB`, `SETTINGS_DIR`. |
 | `core/tabs/common-script.sh` | Shared library. Sourced by every tab script. Resolves Homebrew and defines the install helpers. |
 | `core/tabs/settings-lib.sh` | Shared library. The preference engine: applies a manifest, reads every key back, restarts the owning services once. |
-| `core/tabs/system/` | Scripts that change macOS itself. |
+| `core/tabs/system/` | Scripts that change macOS itself. `optimize-settings.sh` is the one entry for every settings change. |
+| `core/settings/` | One module per settings area, run in order by `optimize-settings.sh`. Outside `core/tabs/`, so the menu never lists them. |
 | `core/tabs/apps/` | Scripts that install applications, grouped by category. |
 | `dotfiles/` | Configuration files copied into the home directory. |
 
@@ -38,8 +39,8 @@ The menu is generated from the directory tree. A new script becomes a new menu
 entry by existing in the right directory; nothing registers it.
 
 A shared library must live at `core/tabs/` root, never under `core/tabs/system/`.
-`core/main.sh:49` lists directories only at the root level, so a file there is
-invisible to the menu, while `core/main.sh:53` lists every `*.sh` inside a
+`core/main.sh:269` lists directories only at the root level, so a file there is
+invisible to the menu, while `core/main.sh:273` lists every `*.sh` inside a
 subdirectory. That is why `common-script.sh` and `settings-lib.sh` sit where they
 do. Putting a library one level deeper turns it into a menu entry that runs
 itself.
@@ -47,8 +48,8 @@ itself.
 ### Environment contract
 
 `start.sh` exports `TEMP_DIR` and `INSTALL_DIR`. `core/main.sh` exports
-`DOT_FILES`, `TABS_DIR`, `COMMON_SCRIPT`, and `SETTINGS_LIB`. Tab scripts depend
-on all six and none of them are set when a script is run directly. To test one
+`DOT_FILES`, `TABS_DIR`, `COMMON_SCRIPT`, `SETTINGS_LIB`, and `SETTINGS_DIR`.
+Tab scripts depend on all seven and none of them are set when a script is run directly. To test one
 script in isolation, export them first.
 
 `core/main.sh` runs each tab as `bash "$path"`, a separate non-interactive,
@@ -294,8 +295,20 @@ Do not remove that guard, and do not add a new unguarded call to a tab. For the
 same reason `install_package` and `install_cask` `return 1` rather than
 `exit 1` -- one failed package should not end the tab.
 
-A settings script reports failed keys and returns 0 regardless. Reporting is the
+A settings run reports failed keys and returns 0 regardless. Reporting is the
 engine's job; aborting is not.
+
+### Add a settings area as a module, not a menu entry
+
+Every settings change runs from the one Optimize Settings entry. A new area is a
+file in `core/settings/` that only defines functions, plus one `run_area` line
+in `core/tabs/system/optimize-settings.sh`, placed where its order matters:
+Spotlight runs before Alfred because Alfred cannot take cmd+space while
+Spotlight holds it. A module must not source the libraries, call its own
+function, or print its own `settings_report`; the optimizer does all three, so
+the run ends in a single failure list. An area returns non-zero only when it
+stopped before finishing, and the optimizer adds it to that list. A step that
+needs Full Disk Access goes in `FULL_DISK_ACCESS_STEPS`.
 
 ### Never point `INSTALL_DIR` at a directory you want to keep
 
@@ -424,8 +437,9 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `SC1090` and `SC1091` are excluded because every tab script sources
 `"$COMMON_SCRIPT"` through a variable that shellcheck cannot resolve.
 
-`bats` covers `core/tabs/settings-lib.sh` and the batch install in
-`core/tabs/common-script.sh`. Most of this repository changes the machine it
+`bats` covers `core/tabs/settings-lib.sh`, the batch install in
+`core/tabs/common-script.sh`, and the order and single report of
+`optimize-settings.sh` against stub modules. Most of this repository changes the machine it
 runs on and cannot be tested; those two are the exception, because deciding
 what to write or install and whether it took is string handling.
 `test/common-script.bats` stubs `brew` as a shell function and skips when no
@@ -534,8 +548,9 @@ logic but not whether a key is the one macOS actually reads. A green pipeline
 says nothing about whether a setting applied.
 
 - Run `shellcheck` on every changed script before reporting done.
-- Run `bats test/` when `core/tabs/settings-lib.sh` or
-  `core/tabs/common-script.sh` changes.
+- Run `bats test/` when `core/tabs/settings-lib.sh`,
+  `core/tabs/common-script.sh`, `core/tabs/system/optimize-settings.sh` or a
+  module in `core/settings/` changes.
 - For a settings change, read every key back with `defaults read` as the
   logged-in user and confirm against the System Settings UI.
 - For an install change, run the affected menu entry twice. The second run must

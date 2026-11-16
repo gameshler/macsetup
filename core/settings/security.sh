@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Security
-# desc: Firewall on, automatic updates off
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Security: firewall on, automatic updates off.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
 
@@ -53,8 +50,4 @@ security() {
     set_software_update
 
     printf "%b\n" "Software Update changes may not show in System Settings until it is reopened."
-
-    settings_report
 }
-
-security
