@@ -252,11 +252,39 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `com.apple.spotlight.settings` and `com.apple.lookup.shared` do not exist.
     The pane's own containers under `~/Library/Containers/` are refused
     without Full Disk Access, so the keys may live there.
-  - Method: a read-only XML snapshot of every plist in
-    `~/Library/Preferences` and `ByHost` was taken at 05:00 into
-    `.context/prefs-before/`. The owner turns the four toggles off, then a
-    second snapshot is diffed against it. If nothing changes, repeat from a
-    terminal with Full Disk Access so the containers are included.
+  - **Diff result, 2026-11-16.** Read-only XML snapshots of every plist in
+    `~/Library/Preferences` and `ByHost`, before and after the owner turned
+    off Show Related Content, Help Apple Improve Search, results from system
+    items and Results from Clipboard:
+
+    | Toggle | Key |
+    | --- | --- |
+    | Show Related Content | `com.apple.Spotlight EnabledPreferenceRules` gains `Custom.relatedContents` |
+    | Results from system items | the same array gains `System.applications`, `System.files`, `System.folders`, `System.iphoneApps`, `System.menuItems` |
+    | Help Apple Improve Search | `com.apple.assistant.support "Search Queries Data Sharing Status"`, created as integer `2` |
+    | Results from Clipboard | **nothing readable changed** |
+
+    A listed rule hides its results despite the key's name, which is why all
+    21 `orderedItems` categories read off while system items still showed.
+    Every other changed file held only timestamps or counters.
+  - **Built, 2026-11-16:** `hide_spotlight_rules` adds each missing rule with
+    `-array-add`, never rewriting the array, and reads each back through
+    `verify_value`; the data sharing key is a manifest row.
+    `test/spotlight.bats`, five tests against a stubbed `defaults`, each
+    guard mutation-checked. Live, against the owner's already-set domain:
+    all six rules verified and the array left byte-identical. `bats test/`
+    86 of 86.
+  - Not proven: that rules written by `defaults` take effect on a Mac where
+    the pane never wrote them. Check on the next fresh install, or by
+    clearing the array and rerunning.
+  - **Open: Results from Clipboard.** Its state is not in any file readable
+    without Full Disk Access; no file under `~/Library` outside the caches
+    changed apart from those above. It is most likely in the pane's
+    container. Next step: repeat the diff from a terminal with the grant,
+    including `~/Library/Containers/com.apple.Spotlight-Settings.extension`
+    and `~/Library/Group Containers`.
+  - **Open: content from Apple partners.** The owner did not mention it;
+    confirm whether the pane shows it on 27.2.1 and whether it is off.
   - Acceptance criteria: every toggle in the Spotlight pane reads back off.
 
 - [ ] Disable all Siri suggestions.
