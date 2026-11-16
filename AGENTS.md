@@ -223,6 +223,13 @@ until that owner reloads.
 Alfred is the inverted case: it caches its own preferences in memory and
 overwrites the file on quit, so editing while it runs loses the change.
 
+The hotkey is a machine-local preference, under
+`preferences/local/<localhash>/`. Take the hash from `localhash` in
+`~/Library/Application Support/Alfred/prefs.json`, which Alfred writes on first
+launch, and create the folder. Never wait for it to exist: Alfred creates it
+only when a local preference is first changed in its UI, so on a fresh install
+it is missing even after Alfred has run.
+
 Verified live on 2026-09-17 for all three owners any manifest declares: `killall
 Finder`, `killall Dock` and `killall WindowManager` from an unprivileged tab all
 terminate the process and launchd brings it straight back, in under a second.
@@ -438,8 +445,9 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `"$COMMON_SCRIPT"` through a variable that shellcheck cannot resolve.
 
 `bats` covers `core/tabs/settings-lib.sh`, the batch install in
-`core/tabs/common-script.sh`, and the order and single report of
-`optimize-settings.sh` against stub modules. Most of this repository changes the machine it
+`core/tabs/common-script.sh`, the order and single report of
+`optimize-settings.sh` against stub modules, and the Alfred hotkey write
+against a scratch `HOME`. Most of this repository changes the machine it
 runs on and cannot be tested; those two are the exception, because deciding
 what to write or install and whether it took is string handling.
 `test/common-script.bats` stubs `brew` as a shell function and skips when no

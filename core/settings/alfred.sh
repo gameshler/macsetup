@@ -3,6 +3,7 @@
 # Alfred: bind it to cmd+space and trim its web searches.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
+ALFRED_PREFS_JSON="$HOME/Library/Application Support/Alfred/prefs.json"
 ALFRED_BUNDLE="$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences"
 WEBSEARCH="$ALFRED_BUNDLE/preferences/features/websearch"
 LOCAL_PREFS="$ALFRED_BUNDLE/preferences/local"
@@ -83,14 +84,20 @@ disable_web_searches() {
     verify_value "Alfred web searches still enabled" "" "${still_enabled% }" exact || true
 }
 
+# Alfred records this Mac's id in prefs.json on first launch, but creates the
+# matching folder under local/ only when a local preference is first changed
+# in its UI. So the id is the source, and the folder may not exist yet. The id
+# becomes a path, so anything but a 40-character hex id is refused.
 local_prefs_dir() {
-    local dir
-    for dir in "$LOCAL_PREFS"/*/; do
-        [ -d "$dir" ] || continue
-        printf '%s' "${dir%/}"
-        return 0
-    done
-    return 1
+    local hash
+    hash="$(plist_value "$ALFRED_PREFS_JSON" localhash)" || return 1
+
+    case "$hash" in
+    *[!0-9a-f]*) return 1 ;;
+    esac
+    [ "${#hash}" -eq 40 ] || return 1
+
+    printf '%s' "$LOCAL_PREFS/$hash"
 }
 
 set_hotkey() {
@@ -99,9 +106,9 @@ set_hotkey() {
     printf "%b\n" "Setting the Alfred hotkey to cmd+space..."
 
     if ! dir="$(local_prefs_dir)"; then
-        printf "%b\n" "No machine-local preferences in $LOCAL_PREFS."
-        printf "%b\n" "Launch Alfred once so it creates them, then run this again."
-        verify_value "Alfred hotkey" "cmd+space" "no machine-local preferences directory" exact || true
+        printf "%b\n" "No id for this Mac in $ALFRED_PREFS_JSON."
+        printf "%b\n" "Launch Alfred once so it records one, then run this again."
+        verify_value "Alfred hotkey" "cmd+space" "no id for this Mac in prefs.json" exact || true
         return 1
     fi
 
