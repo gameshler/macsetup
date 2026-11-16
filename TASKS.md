@@ -358,6 +358,45 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     Not verified: the real password prompt, which needs a terminal, and
     whether the pane URL lands on Full Disk Access on 27.2.1 rather than on
     Privacy & Security. Both need the next real run of the setup command.
+  - **Temporary for the session, added 2026-11-16 at the owner's request.** A
+    missing grant opens the pane by itself at startup. On every exit
+    `cleanup` revokes the terminal's grant with
+    `tccutil reset SystemPolicyAllFiles <app id>`, the id taken from
+    `__CFBundleIdentifier`, then kills the keepalive and runs `sudo -k`. The
+    revoke happens only when the session started with the grant; the run in
+    which it is granted is quit by macOS to apply it, and revoking then would
+    undo it. HUP, INT and TERM are trapped into `exit`, so a closed window
+    or a kill still goes through `cleanup`.
+  - Harness, from throwaway copies with `sudo`, `open`, `tccutil` and
+    `sqlite3` as exported functions, gated on all four resolving as
+    functions, and an app id of `com.example.harness` so even an unstubbed
+    reset could only hit an app that does not exist:
+
+    | Case | Result |
+    | --- | --- |
+    | granted, quit with `q` | `tccutil reset SystemPolicyAllFiles com.example.harness`, then `sudo -k`, exit 0 |
+    | not granted, Enter, `q` | pane opened, **no** `tccutil` call, `sudo -k` |
+    | granted, no app id | no `tccutil` call; warned at startup and at quit to turn it off by hand |
+    | granted, grant still recorded after the reset | "Could not revoke" with the manual remedy |
+    | granted, window closed (HUP) | revoked, `sudo -k`, exit 129 |
+    | granted, killed (TERM) | revoked, `sudo -k`, exit 143 |
+
+    No menu or keepalive process outlived any case.
+  - **Incident, 2026-11-16:** while probing `tccutil`, the bare
+    `tccutil reset SystemPolicyAllFiles` was run by mistake. It printed
+    `Successfully reset SystemPolicyAllFiles`, clearing Full Disk Access for
+    every app on this Mac. It cannot be undone or listed. The owner was told
+    to re-grant whatever needs it. `AGENTS.md` now carries a hard rule, and
+    `revoke_full_disk_access` refuses an empty or malformed id; tests 8 and 9
+    in `test/full-disk-access.bats` fail if that guard is removed.
+  - What the probe did establish: on 27.2.1 `tccutil reset` with an app id
+    runs unprivileged, and an unknown id fails with exit 64 instead of
+    widening the reset.
+  - Not verified live, by design: a real per-app revoke. Proving it means
+    revoking a real grant. The read-back after the reset is the probe, then
+    a query of `access` in the system `TCC.db`; that table's schema on 27.2.1
+    could not be read without the grant. If the query fails, the revoke is
+    reported as failed, which is the safe direction.
   - Requested by the owner, 2026-11-16. Reduce motion, the Finder sidebar, and
     AutoFill all need it, and today each one fails on its own with a different
     message. The terminal used for testing **lacks** it.
