@@ -561,6 +561,22 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `com.apple.finder` keys rather than entries in the favorites file. Find
     them by reading the domain before and after toggling each one in Finder
     Settings.
+  - **Owner set it by hand, 2026-11-17,** Finder Settings > Sidebar to the
+    five items plus every tag unticked, and diffed: `com.apple.finder`
+    changed only window frames. Nothing readable holds the sidebar or tags.
+  - **Correction:** the files exist; `stat` reaches them by name without Full
+    Disk Access. `com.apple.LSSharedFileList.FavoriteItems.sfl4` (3677 B)
+    and `FavoriteVolumes.sfl4` (7220 B) both changed at 03:49 during the
+    owner's edit; `ProjectsItems.sfl4` did not. The folder itself changed at
+    03:51, so a file was added or removed there, possibly the tag list.
+  - Trash: the owner could not reach `~/.Trash` from Finder's Go to Folder,
+    and it is TCC-refused here. It stays in the Dock, where macOS always
+    keeps it; a sidebar Trash is not offered.
+  - Next, in the Full Disk Access session: read both `.sfl4` files and list
+    the folder to find the tag file. The write route is still open: the
+    archives hold per-Mac bookmarks, so they cannot be copied to another
+    Mac, and editing them needs a reader and writer that round-trip the
+    format exactly. Nothing is written until that is proven.
   - Acceptance criteria: the sidebar shows exactly those items and no tags,
     and both survive a logout.
 
