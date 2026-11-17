@@ -213,6 +213,12 @@ one report with every row, and pick the mode just as carefully: the firewall che
 has to be `contains` because the state is embedded in a sentence, while `womp` has
 to be `exact` or a value of `10` would pass as `0`.
 
+`pmset -g` shows only the power source in use, so a row set for one source
+with `pmset -b` or `pmset -c` reads its own section of `pmset -g custom`,
+`Battery Power` or `AC Power`, through `pmset_value` in
+`core/settings/battery.sh`. Both sections carry the same keys, so reading the
+first match checks the wrong source.
+
 ### Restart the process that owns the preference, not the one you assume
 
 macOS brokers preference reads through `cfprefsd`, which caches a live domain
@@ -458,7 +464,8 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `optimize-settings.sh` against stub modules, the Alfred hotkey write
 against a scratch `HOME`, the Spotlight hide rules and Siri suggestion list
 against a stubbed `defaults`, and the Copilot shim removal against a scratch
-copy with `sudo` and `pkgutil` stubbed. Most of this repository changes the machine it
+copy with `sudo` and `pkgutil` stubbed, and the Battery options against a
+stubbed `pmset`. Most of this repository changes the machine it
 runs on and cannot be tested; those two are the exception, because deciding
 what to write or install and whether it took is string handling.
 `test/common-script.bats` stubs `brew` as a shell function and skips when no
