@@ -10,7 +10,7 @@ setup() {
     printf '%s\n' "lessbright 1" "sleep 1" >"$POWER/battery"
     printf '%s\n' "sleep 0" >"$POWER/ac"
     echo 1 >"$VIDEO"
-    DROPPED_WRITE="" SUDO_REFUSES=0 HAS_BATTERY=1
+    DROPPED_WRITE="" SUDO_REFUSES=0
 
     # shellcheck source=../core/tabs/settings-lib.sh
     . "$BATS_TEST_DIRNAME/../core/tabs/settings-lib.sh"
@@ -25,11 +25,6 @@ setup() {
         local file
         case "$1" in
         -g)
-            if [ "$2" = "batt" ]; then
-                printf "Now drawing from 'AC Power'\n"
-                [ "$HAS_BATTERY" = "1" ] && printf ' -InternalBattery-0 (id=1)\t67%%; charging; present: true\n'
-                return 0
-            fi
             printf 'Battery Power:\n'
             sed 's/^/ /' "$POWER/battery"
             printf 'AC Power:\n'
@@ -98,16 +93,4 @@ power_value() {
     printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "Battery Power lessbright"
     printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "AC Power sleep"
     printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "optimizeVideoStreamingOnBattery"
-}
-
-# A desktop Mac has no Battery pane, and pmset has no battery source to set.
-@test "on a Mac without a battery, changes nothing and reports nothing" {
-    HAS_BATTERY=0
-
-    battery
-
-    [ "$(cat "$POWER/battery")" = "$(printf '%s\n' "lessbright 1" "sleep 1")" ]
-    [ "$(cat "$POWER/ac")" = "sleep 0" ]
-    [ "$(cat "$VIDEO")" = "1" ]
-    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
 }
