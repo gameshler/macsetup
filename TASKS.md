@@ -490,9 +490,21 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
 
     | Setting | Now | Proposed |
     | --- | --- | --- |
-    | Require password after sleep or screen saver | 300 s (`sysadminctl -screenLock status`) | immediately |
     | Automatically allow downloaded signed software through the firewall | enabled | off, so a downloaded app asks before listening |
     | AirPlay Receiver | key absent, default on | off |
+
+  - Owner, 2026-11-17: do the screen lock and AirPlay Receiver; the signed
+    software firewall option was explained and not chosen.
+  - **Built, 2026-11-17:** `require_password_immediately` in `security.sh`,
+    after stealth mode. `sysadminctl -screenLock immediate -password -` asks
+    for the login password on the terminal, not sudo, and only when
+    `-screenLock status` does not already print `screenLock delay is
+    immediate`; that sentence, from the binary's own format strings, is the
+    read-back. Three tests, six mutations killed; `bats test/` 114 of 114.
+    Not run live: it needs the owner's login password.
+  - AirPlay Receiver: preferences snapshotted to `.context/airplay-before`;
+    waiting on the owner to turn it off in General > AirDrop & Handoff, so
+    the key is diffed rather than guessed.
 
   - Acceptance criteria: stealth mode reads on and shows on in Network >
     Firewall > Options; any further hardening or performance setting is agreed
