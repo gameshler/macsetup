@@ -17,24 +17,31 @@ TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
 
 # Sourcing the shared library runs checkPackageManager, so Homebrew is found,
 # or installed, before the menu opens, and sudo_keepalive becomes available.
+# Installing Homebrew can take the password, and main() replaces these traps
+# only afterwards, so a failed or interrupted install still drops it.
+trap 'sudo -k 2>/dev/null || true' EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 . "$COMMON_SCRIPT"
 . "$SETTINGS_LIB"
 
 cleanup() {
     local status=$?
+    # After a closed window the terminal is gone and every write fails; under
+    # set -e that would end this trap before the removals below.
+    set +e
 
     end_full_disk_access || true
     end_sudo_session
-    # After a closed window the terminal is gone and a write fails, which
-    # under set -e would end this trap before the removals below.
-    printf '  Administrator session ended.\n' || true
+    printf '  Administrator session ended.\n'
 
     rm -rf "$TEMP_DIR"
 
     if [ "$status" -eq 0 ]; then
         rm -rf "$INSTALL_DIR"
     else
-        echo "Exited with status $status. Keeping $INSTALL_DIR so the run can be retried and inspected." || true
+        echo "Exited with status $status. Keeping $INSTALL_DIR so the run can be retried and inspected."
     fi
 }
 
