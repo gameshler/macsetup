@@ -115,6 +115,9 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
 - Apple Intelligence and AI features: disable everything, and remove whatever
   can be removed.
 - The repository checks whether the terminal has Full Disk Access.
+- 2026-11-17: Full Disk Access is not granted to the terminal, not even for
+  a session, because the owner judges it a risk. A setting that needs it is
+  set by hand and listed under Set by hand in `README.md`.
 
 - [ ] Re-baseline every settings tab in `core/tabs/system/` against macOS 27.
   - `SPEC.md:108` still targets macOS 15 (Sequoia) and the appendix records
@@ -229,6 +232,9 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Decide between requiring Full Disk Access for this step and reporting it as
     a manual step. Either way the tab has to say so up front, not only in the
     failure list.
+  - Without Full Disk Access, which the owner no longer grants, the row is
+    reported as failed and reduce motion is set by hand; it is listed under
+    Set by hand in `README.md`. This Mac already reads `1`.
   - Acceptance criteria: `reduceMotion` reads `1` and Accessibility > Display >
     Reduce motion shows on, or the run names it as a manual step with the
     remedy.
@@ -277,12 +283,9 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Not proven: that rules written by `defaults` take effect on a Mac where
     the pane never wrote them. Check on the next fresh install, or by
     clearing the array and rerunning.
-  - **Open: Results from Clipboard.** Its state is not in any file readable
-    without Full Disk Access; no file under `~/Library` outside the caches
-    changed apart from those above. It is most likely in the pane's
-    container. Next step: repeat the diff from a terminal with the grant,
-    including `~/Library/Containers/com.apple.Spotlight-Settings.extension`
-    and `~/Library/Group Containers`.
+  - Results from Clipboard changed no readable file, so it needs Full Disk
+    Access; by the owner's decision of 2026-11-17 it is set by hand, under
+    Set by hand in `README.md`. The owner already turned it off.
   - **Open: content from Apple partners.** The owner did not mention it;
     confirm whether the pane shows it on 27.2.1 and whether it is off.
   - Acceptance criteria: every toggle in the Spotlight pane reads back off.
@@ -372,26 +375,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: Apple Intelligence & Siri shows everything off, and no
     third-party AI app remains in `/Applications`.
 
-- [ ] Disable Tips.
-  - `com.apple.tipsd` exists; notification and suggestion keys not yet
-    identified. `Tips.app` is a system app and cannot be removed.
-  - **Read-only, 2026-11-16:** every `TPS*` key in `com.apple.tipsd` is
-    daemon state (counts, dates, pending tips), not a setting. `tipsd` logs
-    "Skip checking notification. Notification disabled %d", so it obeys the
-    app's notification permission: the switch is Notifications > Tips >
-    Allow notifications.
-  - That switch is not readable here. `com.apple.ncprefs` no longer exists on
-    27.2.1, and notification settings sit in
-    `~/Library/Group Containers/group.com.apple.usernoted`, which is
-    TCC-refused without Full Disk Access.
-  - Next: with Full Disk Access, take XML snapshots of that container's
-    `Library/Preferences`, have the owner turn Tips off in the pane, and diff.
-    Writing the key would also need Full Disk Access, so Tips would join
-    `FULL_DISK_ACCESS_STEPS`. The Spotlight clipboard diff needs the same
-    session.
-  - Acceptance criteria: no Tips notifications, Tips notifications off in the
-    Notifications pane.
-
 - [ ] Turn off four Battery options.
   - Scope from the owner, 2026-11-16, and nothing else in the pane:
 
@@ -437,12 +420,13 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `test/menu-bar.bats`, five tests, eight mutations killed; `bats test/`
     100 of 100. Every row already reads as written on this Mac. Not proven:
     that Control Center honours rows written while it runs on a fresh Mac.
-  - Open: Allow in the Menu Bar, the third-party app list, changed no
-    readable file. Its storage is `group.com.apple.controlcenter` or
-    `group.com.apple.secure-control-center-preferences`, both TCC-refused
-    without Full Disk Access; it joins the Tips and Spotlight clipboard diffs.
-  - Acceptance criteria: every app in the list reads off and none appears in
-    the menu bar after a logout.
+  - Allow in the Menu Bar, the third-party app list, changed no readable
+    file; it sits in `group.com.apple.controlcenter` or
+    `group.com.apple.secure-control-center-preferences`, both TCC-refused. By
+    the owner's decision of 2026-11-17 it is set by hand, under Set by hand in
+    `README.md`.
+  - Acceptance criteria: every system control reads Don't Show, and none
+    appears in the menu bar after a logout.
 
 - [ ] Set the wallpaper to solid black.
   - macOS ships a black solid colour under Wallpaper > Colors. Mechanism not
@@ -532,54 +516,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: on a Mac without Homebrew, the first run asks for the
     password once and installs Homebrew without a manual `sudo -v`.
 
-- [ ] Finder sidebar: show only Applications, Documents, Downloads, Home,
-  external disks and the Trash, and turn off every tag.
-  - The owner's list, 2026-11-16, replacing the earlier eight-item list.
-    Everything else is hidden: Recents, Shared, Desktop, AirDrop, iCloud
-    Drive, Bonjour computers, connected servers, CDs and DVDs, and the Tags
-    section.
-  - **Trash is not a Finder Settings sidebar option** on any macOS checked so
-    far. It could only appear as a favorite pointing at `~/.Trash`, if Finder
-    accepts one; check that on 27.2.1 before promising it.
-  - Tags: `FavoriteTagNames` reads `( )` and `ShowRecentTags` reads `0`, yet
-    tags still show, so on 27.2.1 the visible tag list is stored somewhere
-    these keys do not reach. Not yet identified.
-  - Favorites (Recents, AirDrop, Desktop, Applications, Documents, Downloads,
-    Home) live in an NSKeyedArchiver file under
-    `~/Library/Application Support/com.apple.sharedfilelist/`. It was
-    `com.apple.LSSharedFileList.FavoriteItems.sfl3` on 15.7.9 and exists under
-    neither `.sfl3` nor `.sfl4` on 27.2.1. Reading it needs Full Disk Access,
-    which the menu now grants for the session. Apply with
-    `killall sharedfilelistd`; `killall Finder` does not reload it.
-  - `LSSharedFileList` is a dead end: it returns an empty list and reports
-    writes that never reach the file (see `AGENTS.md`). `mysides` is built on
-    it and its cask is disabled. **`sbedit` is rejected by the owner,
-    2026-11-16, as old and unreliable.** Any tool that edits the favorites
-    file is out unless the owner approves it; the remaining route is writing
-    the archive directly, which must read back the same way.
-  - The Locations toggles (external disks, servers, Bonjour, CDs) may be
-    `com.apple.finder` keys rather than entries in the favorites file. Find
-    them by reading the domain before and after toggling each one in Finder
-    Settings.
-  - **Owner set it by hand, 2026-11-17,** Finder Settings > Sidebar to the
-    five items plus every tag unticked, and diffed: `com.apple.finder`
-    changed only window frames. Nothing readable holds the sidebar or tags.
-  - **Correction:** the files exist; `stat` reaches them by name without Full
-    Disk Access. `com.apple.LSSharedFileList.FavoriteItems.sfl4` (3677 B)
-    and `FavoriteVolumes.sfl4` (7220 B) both changed at 03:49 during the
-    owner's edit; `ProjectsItems.sfl4` did not. The folder itself changed at
-    03:51, so a file was added or removed there, possibly the tag list.
-  - Trash: the owner could not reach `~/.Trash` from Finder's Go to Folder,
-    and it is TCC-refused here. It stays in the Dock, where macOS always
-    keeps it; a sidebar Trash is not offered.
-  - Next, in the Full Disk Access session: read both `.sfl4` files and list
-    the folder to find the tag file. The write route is still open: the
-    archives hold per-Mac bookmarks, so they cannot be copied to another
-    Mac, and editing them needs a reader and writer that round-trip the
-    format exactly. Nothing is written until that is proven.
-  - Acceptance criteria: the sidebar shows exactly those items and no tags,
-    and both survive a logout.
-
 ## Next phase: Development environment
 
 No open tasks.
@@ -659,29 +595,6 @@ No open tasks.
     for `gitconfig` is a project-type config generator with a CLI, so it would
     need naming or a source URL.
 
-- [ ] General > AutoFill and Passwords.
-  - **Scope given by the owner 2026-09-17: "disable everything".** Displays >
-    Advanced, once part of this task, has its own task in the macOS 27
-    section. The remaining work is enumerating the AutoFill toggles.
-  - Acceptance criteria: every toggle in General > AutoFill and Passwords reads
-    back off, and the pane shows them off after being reopened.
-  - **The TCC claim is confirmed, 2026-09-17.** It is not a permissions
-    problem and cannot be worked around by fixing modes:
-
-    | Check | Result |
-    | --- | --- |
-    | `defaults read com.apple.Safari` | `Domain ... does not exist` (resolved into the container) |
-    | `ls -l` the container plist | exists, **5.3K, `-rw-------`, owner `rogue`** |
-    | `id -un` | `rogue` -- so the owner has read permission |
-    | `head -c 8` on it | `Operation not permitted` |
-    | `plutil -p` | `NSCocoaErrorDomain Code=257` / `NSPOSIXErrorDomain Code=1` |
-
-    Owning a file with `rw-------` and still being refused is the TCC
-    signature. Full Disk Access for the terminal is a hard prerequisite.
-  - To unblock: the menu now grants Full Disk Access for the session, which
-    makes the Safari container readable and turns "disable everything" into an
-    enumerable list.
-
 ## Completed
 
 Each task was verified on a real Mac before being moved here. The investigation
@@ -709,6 +622,10 @@ where it generalises.
   owner's toggle showed `-currentHost com.apple.universalcontrol Disable` and
   `DisableMagicEdges`, both true; `display.sh` writes them before More Space
   and read them back live, 2026-11-17.
+- [x] ~~Disable Tips, set the Finder sidebar and tags, turn off General >
+  AutoFill and Passwords.~~ Each is stored only where Full Disk Access is
+  needed, which the owner does not grant, so they moved to Set by hand in
+  `README.md`, 2026-11-17. The readable Finder tag keys stay in `fix-finder.sh`.
 
 ### Menu and installer
 
