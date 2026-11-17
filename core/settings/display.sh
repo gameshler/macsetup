@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Display: switch the built-in display to More Space.
+# Display: turn Universal Control off and switch the built-in display to
+# More Space.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 main_display_block() {
@@ -97,8 +98,22 @@ set_more_space() {
     verify_value "display scaling" "on" "$(block_field "$block" '^Scaling:' 2)" exact || true
 }
 
+# Displays > Advanced: "Allow your pointer and keyboard to move between any
+# nearby Mac or iPad" is Disable, and "Push through the edge of a display to
+# connect a nearby Mac or iPad" is DisableMagicEdges. Diffed on macOS 27.2.1.
+disable_universal_control() {
+    printf "%b\n" "Turning off Universal Control..."
+
+    apply_settings <<'EOF'
+-currentHost com.apple.universalcontrol | Disable           | bool | true | UniversalControl
+-currentHost com.apple.universalcontrol | DisableMagicEdges | bool | true | UniversalControl
+EOF
+}
+
+# Universal Control first: More Space stops early on a second display.
 display() {
     printf "%b\n" "Configuring the display..."
 
+    disable_universal_control
     set_more_space
 }

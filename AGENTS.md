@@ -463,9 +463,9 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `core/tabs/common-script.sh`, the order and single report of
 `optimize-settings.sh` against stub modules, the Alfred hotkey write and
 the wallpaper store against a scratch `HOME`, the Spotlight hide rules, Siri
-suggestion list and menu bar rows against a stubbed `defaults`, the Copilot
-shim removal against a scratch copy with `sudo` and `pkgutil` stubbed, the
-Battery options against a stubbed `pmset`, and stealth mode, the screen lock
+suggestion list, menu bar rows and Universal Control against a stubbed
+`defaults`, the Copilot shim removal against a scratch copy with `sudo` and
+`pkgutil` stubbed, the Battery options against a stubbed `pmset`, and stealth mode, the screen lock
 and AirPlay Receiver against a scratch `socketfilterfw` and stubbed
 `sysadminctl` and `defaults`. Most of this repository changes the machine it
 runs on and cannot be tested; those two are the exception, because deciding
