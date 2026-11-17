@@ -532,21 +532,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: on a Mac without Homebrew, the first run asks for the
     password once and installs Homebrew without a manual `sudo -v`.
 
-- [ ] Make the `[[ ]]` assertions in `test/settings-lib.bats` able to fail.
-  - Found 2026-11-16 while writing `test/common-script.bats`. `bats` runs
-    under `/bin/bash` 3.2.57, where a failing `[[ ]]` does not trip `set -e`.
-    Only the last command in a test decides its result, so a `[[ ]]` anywhere
-    else passes whatever it compares. Reproduced: a test of
-    `[[ "a" == "b" ]]` followed by `true` reports `ok`.
-  - `test/settings-lib.bats` has 43 `[[ ]]` assertions across 26 tests, and
-    13 of those tests end in one. The other 30 assertions can never fail. The
-    mutation checks recorded for `verify_value` still caught their mutants,
-    so some coverage is real, but it is unknown how much.
-  - Fix: rewrite each as `[ ]`, a `grep -q` on `$output`, or append
-    `|| false`. Then mutation-check the engine again.
-  - Acceptance criteria: changing any one asserted string in a test makes
-    that test fail.
-
 - [ ] Displays > Advanced: turn off both Universal Control toggles.
   - Requested by the owner, 2026-11-16: turn off "Allow your pointer and
     keyboard to move between any nearby Mac or iPad" and "Push through the
@@ -716,6 +701,9 @@ where it generalises.
   batch now retries one package at a time and names only the failures.
 - [x] ~~Disable Bluetooth.~~ Withdrawn at the owner's request: Bluetooth stays
   a manual toggle.
+- [x] Make the `[[ ]]` assertions in `test/settings-lib.bats` able to fail.
+  Under `/bin/bash` 3.2, 30 of 43 passed whatever they compared; each now ends
+  in `|| false`, and every asserted-string mutant now fails, 2026-11-17.
 
 ### Menu and installer
 
