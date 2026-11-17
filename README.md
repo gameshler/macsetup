@@ -75,6 +75,23 @@ I don't use the Dock at all. It takes up screen space, and I can use RayCast to 
     - Animate opening applications -> No
     - Show suggested and recent apps in the Dock -> No
 
+### Set by hand
+
+Optimize Settings cannot reach these without Full Disk Access, which I do not
+grant the terminal, so I set them myself after a run.
+
+- Finder -> Settings
+  - Sidebar -> tick only Applications, Documents, Downloads, Home and External disks
+  - Sidebar -> Recent Tags -> uncheck
+  - Tags -> Show these tags in the sidebar -> uncheck every tag
+- System Settings
+  - Notifications -> Tips -> Allow notifications -> Off
+  - Spotlight -> Results from Clipboard -> Off
+  - Menu Bar -> Allow in the Menu Bar -> every app off
+  - General -> AutoFill & Passwords -> every option off
+  - Accessibility -> Display -> Reduce motion -> On
+- Empty the Trash
+
 ## Quick Launching
 
 The built in spotlight search is a bit slow for me and usually has web search results as the default instead of apps or folders on my machine.
