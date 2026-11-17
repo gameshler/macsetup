@@ -476,6 +476,24 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     `security.sh`, read back with `--getstealthmode` through `verify_value`.
     Check the exact output string on 27.2.1 before choosing the `contains`
     text; today it prints `Firewall stealth mode is off`.
+  - **Built, 2026-11-17:** `enable_stealth_mode` in `security.sh`, run right
+    after `enable_firewall`. `socketfilterfw` formats the answer as `Firewall
+    stealth mode is %s`, so the read-back is `exact` on `Firewall stealth mode
+    is on`, which an off state cannot pass. `test/security.bats`, four tests,
+    six mutations killed; `bats test/` 111 of 111. Not run live: it needs the
+    owner's sudo session.
+  - Read-only, 2026-11-17, already as they should be: Gatekeeper
+    assessments on, SIP on, guest account off, no automatic login, crash
+    report auto-submit `0`, Remote Login, Screen Sharing and File Sharing not
+    loaded, firewall block-all off.
+  - Candidates waiting on the owner, nothing written:
+
+    | Setting | Now | Proposed |
+    | --- | --- | --- |
+    | Require password after sleep or screen saver | 300 s (`sysadminctl -screenLock status`) | immediately |
+    | Automatically allow downloaded signed software through the firewall | enabled | off, so a downloaded app asks before listening |
+    | AirPlay Receiver | key absent, default on | off |
+
   - Acceptance criteria: stealth mode reads on and shows on in Network >
     Firewall > Options; any further hardening or performance setting is agreed
     first and read back.
