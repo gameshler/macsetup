@@ -115,9 +115,10 @@ trackpad.
 
 ### Dependencies and risks
 
-Depends on Phase 1. The preference keys are verified against macOS 15.7.9 by
-reading them off a machine already configured by hand, so the risk is not
-whether the keys are right but whether they survive a macOS upgrade.
+Depends on Phase 1. The preference keys were first verified against macOS
+15.7.9 by reading them off a machine already configured by hand, and every
+manifest row was read back again on 27.2.1, so the risk is not whether the
+keys are right but whether they survive a macOS upgrade.
 
 Finder and Dock are restarted to apply changes, which closes open Finder
 windows. The engine restarts each service once per run rather than once per key,

@@ -105,13 +105,14 @@ previous run did.
 
 ## Performance and compatibility
 
-- Target: Apple Silicon, macOS 15 (Sequoia). Developed against 15.7.9 (24G830).
+- Target: Apple Silicon, macOS 27. Verified against 27.2.1 (26B131) on
+  2026-11-17; first developed against macOS 15.7.9 (24G830).
 - Homebrew is expected at `/opt/homebrew`; `/usr/local` is accepted for Intel
   but is not tested.
 - A multi-application install completes without per-package interaction. The
   measure is the number of prompts, not elapsed time: one password prompt and
   no confirmations.
-- Preference keys are version-sensitive. A key verified on macOS 15 is not
+- Preference keys are version-sensitive. A key verified on one macOS is not
   assumed to hold on another major version, and the version it was verified
   against is recorded.
 - Writes target preference domains, not plist paths. Apple has warned that
@@ -181,8 +182,9 @@ These block specific settings, not the repository as a whole. Each is tracked in
   Full Disk Access is a hard prerequisite, and not only to write: with the API
   returning nothing and the file TCC-refused, there is no channel left to read a
   sidebar entry back, so the read-back this specification requires cannot be
-  satisfied without the grant. Undecided: take the `sbedit` dependency, or
-  document the sidebar as manual.
+  satisfied without the grant. Decided 2026-11-17: the sidebar is set by hand.
+  The owner rejected `sbedit` as old and unreliable and does not grant the
+  terminal Full Disk Access, so it is listed under Set by hand in `README.md`.
 - **Alfred.** Settings live in an `Alfred.alfredpreferences` bundle keyed by
   generated UUIDs, not in a preference domain; web search sits at
   `preferences/features/websearch/prefs.plist` and the global hotkey under
