@@ -75,9 +75,10 @@ deletes `TEMP_DIR`, and deletes `INSTALL_DIR` only when the exit status is 0.
 
 `core/main.sh` installs the `cleanup` trap before it sources the libraries,
 because sourcing can already take the password to install Homebrew. `cleanup`
-therefore tolerates functions the libraries have not defined yet, ignores
-further signals, and turns off `set -e` and `set -u`, so a failed write to a
-closed window cannot stop it before the removals.
+therefore skips functions the libraries have not defined yet, ignores further
+signals, and turns off `set -e`, so a failed write to a closed window cannot
+stop it before the removals. Without `TEMP_DIR`, which only `start.sh` sets,
+it deletes nothing.
 
 The owner does not grant the terminal Full Disk Access. Settings that need it
 are listed in `README.md` under Set by hand.

@@ -19,10 +19,14 @@ setup() {
     PATH="$BATS_TEST_TMPDIR/bin:$PATH"
 }
 
-# stub_library <body>: the shared library defines end_sudo_session as the real
-# one does at its core, then runs <body>.
+# stub_library <body>: the shared library defines the real end_sudo_session,
+# taken from common-script.sh, then runs <body>.
 stub_library() {
-    printf 'end_sudo_session() { sudo -k; }\n%s\n' "$1" >"$INSTALL_DIR/core/tabs/common-script.sh"
+    {
+        awk '/^end_sudo_session\(\) \{/{f=1} f{print} f&&/^}/{exit}' \
+            "$BATS_TEST_DIRNAME/../core/tabs/common-script.sh"
+        printf '%s\n' "$1"
+    } >"$INSTALL_DIR/core/tabs/common-script.sh"
 }
 
 @test "when the shared library exits while sourced, drops sudo and removes only TEMP_DIR" {
@@ -48,10 +52,11 @@ stub_library() {
 }
 
 @test "a second signal during cleanup does not cut it short" {
-    stub_library 'end_sudo_session() { kill -TERM $$; sudo -k; }; exit 1'
+    stub_library 'sudo() { kill -TERM $$; command sudo "$@"; }; exit 1'
 
     run bash "$INSTALL_DIR/core/main.sh"
 
+    [ "$status" -eq 1 ]
     grep -qx "sudo -k" "$SUDO_LOG"
     [ ! -e "$TEMP_DIR" ]
 }
@@ -62,5 +67,28 @@ stub_library() {
     bash "$INSTALL_DIR/core/main.sh" >&- 2>/dev/null || true
 
     grep -qx "sudo -k" "$SUDO_LOG"
+    [ ! -e "$TEMP_DIR" ]
+}
+
+# TEMP_DIR comes from start.sh. Without it this is not the disposable unpack,
+# so even a clean exit must not delete INSTALL_DIR.
+@test "without TEMP_DIR, a clean exit keeps INSTALL_DIR" {
+    stub_library 'exit 0'
+    unset TEMP_DIR
+
+    run bash "$INSTALL_DIR/core/main.sh"
+
+    [ "$status" -eq 0 ]
+    [ -d "$INSTALL_DIR" ]
+    printf '%s\n' "$output" | grep -qF "TEMP_DIR is not set. Keeping $INSTALL_DIR."
+}
+
+@test "when no library defined end_sudo_session, says nothing about ending a session" {
+    printf 'exit 1\n' >"$INSTALL_DIR/core/tabs/common-script.sh"
+
+    run bash "$INSTALL_DIR/core/main.sh"
+
+    [ "$(printf '%s\n' "$output" | grep -c 'Administrator session ended')" -eq 0 ]
+    [ "$(printf '%s\n' "$output" | grep -c 'command not found')" -eq 0 ]
     [ ! -e "$TEMP_DIR" ]
 }

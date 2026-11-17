@@ -16,18 +16,28 @@ SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/mac
 TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
 
 # Runs on every exit, including one while the libraries below are being
-# sourced, so a function they define may not exist yet; its error is hidden.
+# sourced, so a function they define may not exist yet.
 cleanup() {
     local status=$?
     # A second signal must not cut this short, and after a closed window every
-    # write fails, which under set -e or set -u would end it early as well.
+    # write fails, which under set -e would end it early as well.
     trap '' HUP INT TERM
-    set +eu
+    set +e
 
-    end_full_disk_access 2>/dev/null
-    end_sudo_session 2>/dev/null
-    printf '  Administrator session ended.\n'
+    if declare -F end_full_disk_access >/dev/null; then
+        end_full_disk_access
+    fi
+    if declare -F end_sudo_session >/dev/null; then
+        end_sudo_session
+        printf '  Administrator session ended.\n'
+    fi
 
+    # TEMP_DIR comes from start.sh. Without it this is not the disposable
+    # unpack, so INSTALL_DIR is not deleted even on a clean exit.
+    if [ -z "${TEMP_DIR:-}" ]; then
+        echo "TEMP_DIR is not set. Keeping ${INSTALL_DIR:-the install directory}."
+        return
+    fi
     rm -rf "$TEMP_DIR"
 
     if [ "$status" -eq 0 ]; then
