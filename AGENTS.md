@@ -462,10 +462,10 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 `bats` covers `core/tabs/settings-lib.sh`, the batch install in
 `core/tabs/common-script.sh`, the order and single report of
 `optimize-settings.sh` against stub modules, the Alfred hotkey write
-against a scratch `HOME`, the Spotlight hide rules and Siri suggestion list
-against a stubbed `defaults`, and the Copilot shim removal against a scratch
-copy with `sudo` and `pkgutil` stubbed, and the Battery options against a
-stubbed `pmset`. Most of this repository changes the machine it
+against a scratch `HOME`, the Spotlight hide rules, Siri suggestion list and
+menu bar rows against a stubbed `defaults`, the Copilot shim removal against
+a scratch copy with `sudo` and `pkgutil` stubbed, and the Battery options
+against a stubbed `pmset`. Most of this repository changes the machine it
 runs on and cannot be tested; those two are the exception, because deciding
 what to write or install and whether it took is string handling.
 `test/common-script.bats` stubs `brew` as a shell function and skips when no

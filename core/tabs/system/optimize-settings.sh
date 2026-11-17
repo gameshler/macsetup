@@ -40,6 +40,7 @@ optimize_settings() {
     run_area "Apple Intelligence" disable_ai
     run_area "Alfred" alfred
     run_area "Dock and Desktop" desktop_dock
+    run_area "Menu bar" menu_bar
     run_area "Finder" fix_finder
     run_area "Trackpad" configure_input
     run_area "Animations" remove_animations
