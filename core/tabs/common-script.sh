@@ -164,7 +164,9 @@ checkPackageManager() {
     printf "%b\n" "Homebrew is not installed"
 
     # NONINTERACTIVE makes the installer run `sudo -n`, which fails instead of
-    # prompting, so the credentials have to be cached before it starts.
+    # prompting, so the credentials have to be cached before it starts. This
+    # runs before the menu installs its exit trap, so a failure below ends the
+    # sudo session itself.
     if ! sudo_keepalive; then
         printf "%b\n" "Homebrew needs administrator access to install"
         exit 1
@@ -174,12 +176,14 @@ checkPackageManager() {
 
     if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
         printf "%b\n" "Failed to install Homebrew"
+        end_sudo_session
         exit 1
     fi
 
     brew_bin=$(brew_path) || brew_bin=""
     if [ -z "$brew_bin" ]; then
         printf "%b\n" "Homebrew installed but no brew binary at /opt/homebrew or /usr/local"
+        end_sudo_session
         exit 1
     fi
 
