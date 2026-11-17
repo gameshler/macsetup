@@ -414,11 +414,33 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: all four rows show off or Never in Battery > Options,
     and each mapped `pmset` key reads back as specified.
 
-- [ ] Disable every app in Menu Bar > Allow in the menu bar.
-  - `com.apple.controlcenter` on 27.2.1 has none of the old per-item
-    `NSStatusItem Visible` keys; the configuration appears to live in
-    `ControlCenterDisplayableChronoControlsProviderConfiguration`, a 13 KB JSON
-    blob. That is structural, not a manifest row. Format not yet established.
+- [ ] Disable every app in Menu Bar > Allow in the menu bar, every system
+  control, and suggestions in the Control Gallery.
+  - Owner, 2026-11-17: also turn off Show suggestions in Control Gallery.
+  - The 13 KB `ControlCenterDisplayableChronoControlsProviderConfiguration`
+    blob is a catalog of the Control Center controls, not a setting.
+  - **Mapped by the owner setting the pane by hand and diffing, 2026-11-17:**
+
+    | Change | Key |
+    | --- | --- |
+    | Control Gallery suggestions off | `-currentHost com.apple.controlcenter ShowSuggestions` false |
+    | Battery, Display, FocusModes, NowPlaying, ScreenMirroring, Sound, Spotlight, Timer, WiFi set to Don't Show | `-currentHost com.apple.controlcenter <module>` int 8; absent before |
+    | Spotlight icon | also `-currentHost com.apple.Spotlight MenuItemHidden` true |
+    | Input menu | `com.apple.TextInputMenu visible` false and `com.apple.TextInputMenuAgent "NSStatusItem VisibleCC Item-0"` false |
+    | Siri AI item (`Siri AI.app`, `com.apple.campo`) | `"NSStatusItem VisibleCC Item-0"` deleted, not set false |
+
+  - Bluetooth has no key and was not changed; the owner keeps it.
+  - **Built, 2026-11-17:** `core/settings/menu-bar.sh` runs as "Menu bar"
+    after Dock and Desktop. Rows restart `ControlCenter` and
+    `TextInputMenuAgent`; the Siri AI key is deleted, checked gone, and only
+    then is `Siri AI` restarted, which its launch agent relaunches.
+    `test/menu-bar.bats`, five tests, eight mutations killed; `bats test/`
+    100 of 100. Every row already reads as written on this Mac. Not proven:
+    that Control Center honours rows written while it runs on a fresh Mac.
+  - Open: Allow in the Menu Bar, the third-party app list, changed no
+    readable file. Its storage is `group.com.apple.controlcenter` or
+    `group.com.apple.secure-control-center-preferences`, both TCC-refused
+    without Full Disk Access; it joins the Tips and Spotlight clipboard diffs.
   - Acceptance criteria: every app in the list reads off and none appears in
     the menu bar after a logout.
 
