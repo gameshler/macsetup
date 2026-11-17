@@ -29,7 +29,7 @@ setup() {
 @test "turns off suggestions in each of the eleven apps the pane lists" {
     disable_siri_suggestions
 
-    [ "$(sort "$BLOCKED" | tr '\n' ' ')" = "com.apple.AddressBook com.apple.FaceTime com.apple.Maps com.apple.MobileSMS com.apple.Safari com.apple.iBooksX com.apple.iCal com.apple.mail com.apple.news com.apple.podcasts com.apple.reminders " ]
+    [ "$(LC_ALL=C sort "$BLOCKED" | tr '\n' ' ')" = "com.apple.AddressBook com.apple.FaceTime com.apple.Maps com.apple.MobileSMS com.apple.Safari com.apple.iBooksX com.apple.iCal com.apple.mail com.apple.news com.apple.podcasts com.apple.reminders " ]
     [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
 }
 
