@@ -7,7 +7,9 @@ setup() {
     CALL_LOG="$BATS_TEST_TMPDIR/calls.log"
     mkdir -p "$STORE"
     : >"$CALL_LOG"
-    UNDELETABLE=""
+    UNDELETABLE="" STUCK_ARRAY="-"
+    TIME_MACHINE_MENU="/System/Library/CoreServices/Menu Extras/TimeMachine.menu"
+    VPN_MENU="/System/Library/CoreServices/Menu Extras/VPN.menu"
 
     # shellcheck source=../core/tabs/settings-lib.sh
     . "$BATS_TEST_DIRNAME/../core/tabs/settings-lib.sh"
@@ -19,7 +21,19 @@ setup() {
         [ "$1" = "-currentHost" ] && scope="byhost " && shift
         file="$STORE/$(printf '%s' "$scope$2 $3" | tr ' /' '__')"
         case "$1" in
-        write) printf '%s\n' "$5" >"$file" ;;
+        write)
+            if [ "$4" = "-array" ]; then
+                shift 4
+                [ "$*" = "$STUCK_ARRAY" ] && return 0
+                {
+                    printf '(\n'
+                    [ "$#" -eq 0 ] || printf '    "%s",\n' "$@"
+                    printf ')\n'
+                } >"$file"
+            else
+                printf '%s\n' "$5" >"$file"
+            fi
+            ;;
         read) cat "$file" 2>/dev/null ;;
         delete)
             [ "$2 $3" = "$UNDELETABLE" ] && return 0
@@ -39,7 +53,7 @@ stored() {
     local control
     menu_bar
 
-    for control in Battery Display FocusModes NowPlaying ScreenMirroring Sound Spotlight Timer WiFi; do
+    for control in AirDrop Battery Bluetooth Display FocusModes KeyboardBrightness NowPlaying ScreenMirroring Sound Spotlight TimeMachine Timer UserSwitcher Weather WiFi; do
         [ "$(stored "byhost com.apple.controlcenter $control")" = "8" ]
     done
     [ "$(stored "byhost com.apple.controlcenter ShowSuggestions")" = "false" ]
@@ -61,6 +75,38 @@ stored() {
     [ "$(grep -cx "KILLALL ControlCenter" "$CALL_LOG")" -eq 1 ]
     [ "$(grep -cx "KILLALL TextInputMenuAgent" "$CALL_LOG")" -eq 1 ]
     [ "$(grep -cF "Siri AI" "$CALL_LOG")" -eq 0 ]
+    [ "$(grep -cF "SystemUIServer" "$CALL_LOG")" -eq 0 ]
+}
+
+# Time Machine also shows through SystemUIServer, the older menu extra route.
+@test "removes the Time Machine menu extra and its visible key, keeping any other extra" {
+    defaults write com.apple.systemuiserver "NSStatusItem VisibleCC com.apple.menuextra.TimeMachine" -bool true
+    defaults write com.apple.systemuiserver menuExtras -array "$VPN_MENU" "$TIME_MACHINE_MENU"
+
+    menu_bar
+
+    [ ! -e "$STORE/com.apple.systemuiserver_NSStatusItem_VisibleCC_com.apple.menuextra.TimeMachine" ]
+    [ "$(stored "com.apple.systemuiserver menuExtras")" = "$(printf '(\n    "%s",\n)' "$VPN_MENU")" ]
+    [ "$(grep -cx "KILLALL SystemUIServer" "$CALL_LOG")" -eq 1 ]
+    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
+}
+
+@test "with Time Machine the only extra, leaves an empty list, as the pane does" {
+    defaults write com.apple.systemuiserver menuExtras -array "$TIME_MACHINE_MENU"
+
+    menu_bar
+
+    [ "$(stored "com.apple.systemuiserver menuExtras")" = "$(printf '(\n)')" ]
+}
+
+@test "a Time Machine extra that will not go away is reported by name" {
+    defaults write com.apple.systemuiserver menuExtras -array "$TIME_MACHINE_MENU"
+    STUCK_ARRAY=""
+
+    menu_bar
+
+    [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
+    printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "TimeMachine.menu"
 }
 
 @test "removes the Siri AI item's visible key, as the pane does" {
