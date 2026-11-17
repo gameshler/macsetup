@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Security: firewall on, automatic updates off.
+# Security: firewall and stealth mode on, automatic updates off.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
@@ -14,6 +14,19 @@ enable_firewall() {
 
     state="$("$FIREWALL" --getglobalstate 2>/dev/null)"
     verify_value "socketfilterfw --getglobalstate" "State = 1" "$state" contains || true
+}
+
+# Stealth mode: no reply to pings or to probes of closed ports. It needs the
+# firewall on, so it runs after enable_firewall.
+enable_stealth_mode() {
+    local state
+
+    printf "%b\n" "Enabling firewall stealth mode..."
+
+    sudo "$FIREWALL" --setstealthmode on >/dev/null 2>&1 || true
+
+    state="$("$FIREWALL" --getstealthmode 2>/dev/null)"
+    verify_value "socketfilterfw --getstealthmode" "Firewall stealth mode is on" "$state" exact || true
 }
 
 disable_wake_on_network() {
@@ -46,6 +59,7 @@ security() {
     sudo_keepalive || printf "%b\n" "No held sudo session; every change here will prompt or fail."
 
     enable_firewall
+    enable_stealth_mode
     disable_wake_on_network
     set_software_update
 
