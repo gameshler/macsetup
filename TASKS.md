@@ -448,6 +448,23 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - macOS ships a black solid colour under Wallpaper > Colors. Mechanism not
     chosen: AppleScript through System Events needs an Automation grant, and
     `desktoppr` would be a new dependency.
+  - Already black on this Mac, set by hand 2026-11-15. The choice lives in
+    `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist`, not
+    a preference domain: `AllSpacesAndDisplays` and `SystemDefault` each hold
+    one `com.apple.wallpaper.choice.color` choice whose `Configuration`
+    decodes to `{type = systemColor; systemColor = {black = {}}}`, and
+    `Displays` and `Spaces` are empty. System Events reads `missing value`
+    for it.
+  - **Built, 2026-11-17:** `core/settings/wallpaper.sh` runs as "Wallpaper"
+    after Menu bar. It writes that store whole, to a temp file beside it,
+    converted to binary and moved into place, then restarts `WallpaperAgent`,
+    which launchd relaunches. A store already black with no display or Space
+    override is left untouched. With the pane's date, the generated store is
+    identical to this Mac's. `test/wallpaper.bats`, seven tests, ten
+    mutations killed; `bats test/` 107 of 107.
+  - Not proven: that `WallpaperAgent` takes the store on restart rather than
+    writing its own state back. Owner check: pick another wallpaper, run
+    Optimize Settings, and see black on every display and Space.
   - Acceptance criteria: every display and every Space shows black, and it
     survives a logout.
 
