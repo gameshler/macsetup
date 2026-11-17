@@ -76,8 +76,9 @@ disable_wake_on_network() {
 set_software_update() {
     printf "%b\n" "Configuring Software Update..."
 
+    # No AutomaticCheckEnabled: macOS 27 has no check toggle, keeps checking,
+    # and deletes the key on its next scan.
     apply_settings <<'EOF'
-/Library/Preferences/com.apple.SoftwareUpdate | AutomaticCheckEnabled            | bool | false |
 /Library/Preferences/com.apple.SoftwareUpdate | AutomaticDownload                | bool | false |
 /Library/Preferences/com.apple.SoftwareUpdate | AutomaticallyInstallMacOSUpdates | bool | false |
 /Library/Preferences/com.apple.SoftwareUpdate | CriticalUpdateInstall            | bool | true  |
