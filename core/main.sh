@@ -19,8 +19,9 @@ TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
 # sourced, so a function they define may not exist yet.
 cleanup() {
     local status=$?
-    # A second signal must not cut this short, and after a closed window every
-    # write fails, which under set -e or set -u would end it early as well.
+    # A second signal must not cut this short. After a closed window every
+    # write fails, which under set -e would end it early, and a library helper
+    # that reads an unset variable would do the same under set -u.
     trap '' HUP INT TERM
     set +eu
 
@@ -37,7 +38,7 @@ cleanup() {
     # was started some other way, so its INSTALL_DIR is kept even on a clean
     # exit. This is not a general safeguard: a run with TEMP_DIR set still
     # deletes whatever INSTALL_DIR names.
-    if [ -z "$TEMP_DIR" ]; then
+    if [ -z "${TEMP_DIR:-}" ]; then
         echo "TEMP_DIR is not set. Keeping $INSTALL_DIR."
         return
     fi

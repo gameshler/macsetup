@@ -101,6 +101,7 @@ stub_library() {
     stub_library 'exit 1'
     run bash "$INSTALL_DIR/core/main.sh"
     [ "$(printf '%s\n' "$output" | grep -c 'Administrator session ended')" -eq 0 ]
+    grep -qx "sudo -k" "$SUDO_LOG"
 
     mkdir -p "$TEMP_DIR"
     stub_library 'SUDO_KEEPALIVE_STARTED=1; exit 1'

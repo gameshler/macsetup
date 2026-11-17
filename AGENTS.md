@@ -76,9 +76,10 @@ and `TEMP_DIR` is set.
 
 `core/main.sh` installs the `cleanup` trap before it sources the libraries,
 because sourcing can already take the password to install Homebrew. `cleanup`
-therefore skips functions the libraries have not defined yet, ignores further
-signals, and turns off `set -e` and `set -u`, so a failed write to a closed
-window cannot stop it before the removals. Without `TEMP_DIR`, which only `start.sh` sets,
+therefore skips functions the libraries have not defined yet and ignores
+further signals. It turns off `set -e`, so a failed write to a closed window
+cannot stop it before the removals, and `set -u`, so an unset variable in a
+library helper cannot either. Without `TEMP_DIR`, which only `start.sh` sets,
 it deletes nothing.
 
 The owner does not grant the terminal Full Disk Access. Settings that need it
@@ -101,11 +102,11 @@ see what it does.
 #### Never point `INSTALL_DIR` at a directory you want to keep
 
 `cleanup` runs `rm -rf "$INSTALL_DIR"` on every clean exit with `TEMP_DIR`
-set, because it is designed for the disposable unpack that `start.sh` makes at
-`~/Downloads/macsetup`. A missing `TEMP_DIR` is not a safeguard to rely on:
-the recipe below exports one. Setting `INSTALL_DIR="$PWD"` to test from a checkout
-deletes the checkout when the menu exits. Always run against a throwaway copy
-(see [Running the menu](#running-the-menu)).
+set, because it is designed for the disposable unpack that `start.sh` makes
+at `~/Downloads/macsetup`. A missing `TEMP_DIR` is not a safeguard to rely
+on: the recipe below exports one. Setting `INSTALL_DIR="$PWD"` to test from
+a checkout deletes the checkout when the menu exits. Always run against a
+throwaway copy (see [Running the menu](#running-the-menu)).
 
 #### Keep the tab invocation guarded
 
@@ -492,7 +493,7 @@ the top level only, so `-r` is not needed.
 | `common-script.bats` | Batch installs and the Homebrew install branch | `brew` stubbed as a function; skips without a real Homebrew |
 | `optimize-settings.bats` | Area order and the single report | stub modules |
 | `full-disk-access.bats` | The probe and the revoke guard | `tccutil` stubbed |
-| `main-exit.bats` | `cleanup` on startup failures, a closed window, and a second signal | copy of `main.sh` with a stub library, `sudo` on `PATH` |
+| `main-exit.bats` | `cleanup` on startup failures, a closed window, a second signal, a missing `TEMP_DIR`, and the session-ended message | copy of `main.sh` with a stub library, `sudo` on `PATH` |
 | `alfred.bats`, `wallpaper.bats` | The hotkey write and the wallpaper store | scratch `HOME` |
 | `spotlight.bats`, `siri.bats`, `menu-bar.bats`, `display.bats` | Hide rules, suggestion lists, menu bar rows, Universal Control | stubbed `defaults` |
 | `ai.bats` | Copilot shim removal | scratch copy, `sudo` and `pkgutil` stubbed |
