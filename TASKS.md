@@ -532,21 +532,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: on a Mac without Homebrew, the first run asks for the
     password once and installs Homebrew without a manual `sudo -v`.
 
-- [ ] Displays > Advanced: turn off both Universal Control toggles.
-  - Requested by the owner, 2026-11-16: turn off "Allow your pointer and
-    keyboard to move between any nearby Mac or iPad" and "Push through the
-    edge of a display to connect a nearby Mac or iPad".
-  - Read-only, 2026-11-16: `com.apple.universalcontrol` still does not exist
-    on 27.2.1, so neither toggle has ever been changed and there is no plist
-    to read key names from.
-  - Candidate keys, **unverified**: `com.apple.universalcontrol Disable` and
-    `DisableMagicEdges`, both bool `true`. Confirm with a before-and-after
-    diff of the owner turning the two toggles off, as for Spotlight and Siri,
-    before writing either as a manifest row. The diff also shows whether a
-    restart of `UniversalControl` is needed for the change to take effect.
-  - Acceptance criteria: both toggles read back off and show off in Displays >
-    Advanced after the pane is reopened.
-
 - [ ] Finder sidebar: show only Applications, Documents, Downloads, Home,
   external disks and the Trash, and turn off every tag.
   - The owner's list, 2026-11-16, replacing the earlier eight-item list.
@@ -704,6 +689,10 @@ where it generalises.
 - [x] Make the `[[ ]]` assertions in `test/settings-lib.bats` able to fail.
   Under `/bin/bash` 3.2, 30 of 43 passed whatever they compared; each now ends
   in `|| false`, and every asserted-string mutant now fails, 2026-11-17.
+- [x] Turn off both Universal Control toggles in Displays > Advanced. The
+  owner's toggle showed `-currentHost com.apple.universalcontrol Disable` and
+  `DisableMagicEdges`, both true; `display.sh` writes them before More Space
+  and read them back live, 2026-11-17.
 
 ### Menu and installer
 
