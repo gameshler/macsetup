@@ -25,14 +25,16 @@ cleanup() {
 
     end_full_disk_access || true
     end_sudo_session
-    printf '  Administrator session ended.\n'
+    # After a closed window the terminal is gone and a write fails, which
+    # under set -e would end this trap before the removals below.
+    printf '  Administrator session ended.\n' || true
 
     rm -rf "$TEMP_DIR"
 
     if [ "$status" -eq 0 ]; then
         rm -rf "$INSTALL_DIR"
     else
-        echo "Exited with status $status. Keeping $INSTALL_DIR so the run can be retried and inspected."
+        echo "Exited with status $status. Keeping $INSTALL_DIR so the run can be retried and inspected." || true
     fi
 }
 
