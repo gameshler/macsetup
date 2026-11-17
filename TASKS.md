@@ -395,18 +395,22 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
 - [ ] Turn off four Battery options.
   - Scope from the owner, 2026-11-16, and nothing else in the pane:
 
-    | Battery > Options row | Target | Current `pmset -g custom` |
+    | Battery > Options row | Off is | Mapped by toggle-and-diff, 2026-11-17 |
     | --- | --- | --- |
-    | Slightly dim the display on battery | off | `lessbright 0` on battery |
-    | Prevent automatic sleeping on power adapter when the display is off | off | key not yet mapped |
-    | Wake for network access | Never | `womp 0` on battery and AC, already set by `security.sh` |
-    | Optimize video streaming while on battery | off | key not yet mapped |
+    | Slightly dim the display on battery | `pmset -b lessbright 0` | on wrote `lessbright 1` on battery |
+    | Prevent automatic sleeping on power adapter when the display is off | `pmset -c sleep 1` | on wrote AC `sleep 0`; off wrote back exactly `1` |
+    | Wake for network access | `womp 0` | already set by `security.sh` |
+    | Optimize video streaming while on battery | `/Library/Preferences/.GlobalPreferences com.apple.coremedia.optimizeVideoStreamingOnBattery` false | not `pmset`; off writes `false` rather than deleting the key |
 
-  - `lessbright` already reads 0, so it needs confirming against the pane
-    rather than writing. The two unmapped rows need a toggle-and-diff of
-    `pmset -g custom` to find their keys on 27.2.1.
-  - `pmset` is not a preference, so each row needs its own read-back through
-    `verify_value`, as `womp` does in `security.sh`. Writes need `sudo`.
+  - **Built, 2026-11-17:** `core/settings/battery.sh` runs as "Battery" after
+    Security. Each `pmset` row is read back from its own section of
+    `pmset -g custom`, because `pmset -g` shows only the source in use; the
+    video row goes through `apply_settings`. `test/battery.bats`, four tests,
+    six mutations killed; `bats test/` 95 of 95. Not run live: it needs the
+    owner's sudo session. All three rows already read off after the owner's
+    toggle back.
+  - The AC row forces `sleep 1`, the value the pane writes, so a custom
+    system sleep timer on AC would be reset to 1.
   - Acceptance criteria: all four rows show off or Never in Battery > Options,
     and each mapped `pmset` key reads back as specified.
 
