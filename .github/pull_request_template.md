@@ -23,8 +23,9 @@ List the exact commands that passed.
 
 - [ ] `shellcheck -S warning -e SC1090,SC1091` passed on every changed script
 - [ ] `shfmt -d -i 4 .` reports no diff
-- [ ] `bats test/` passed, when `settings-lib.sh`, `common-script.sh`,
-      `optimize-settings.sh`, or a module in `core/settings/` changed
+- [ ] `bats test/` passed, when `main.sh`, `settings-lib.sh`,
+      `common-script.sh`, `optimize-settings.sh`, or a module in
+      `core/settings/` changed
 - [ ] `typos` passed
 - [ ] Pull-request CI passed on the latest commit
 - [ ] No credential, license key, serial, or `.env` file is staged

@@ -73,6 +73,12 @@ that started without the grant is the one where it was just given, and macOS
 quits the terminal to apply it, so revoking then would undo it. `cleanup` then
 deletes `TEMP_DIR`, and deletes `INSTALL_DIR` only when the exit status is 0.
 
+`core/main.sh` installs the `cleanup` trap before it sources the libraries,
+because sourcing can already take the password to install Homebrew. `cleanup`
+therefore tolerates functions the libraries have not defined yet, ignores
+further signals, and turns off `set -e` and `set -u`, so a failed write to a
+closed window cannot stop it before the removals.
+
 The owner does not grant the terminal Full Disk Access. Settings that need it
 are listed in `README.md` under Set by hand.
 
@@ -483,6 +489,7 @@ the top level only, so `-r` is not needed.
 | `common-script.bats` | Batch installs and the Homebrew install branch | `brew` stubbed as a function; skips without a real Homebrew |
 | `optimize-settings.bats` | Area order and the single report | stub modules |
 | `full-disk-access.bats` | The probe and the revoke guard | `tccutil` stubbed |
+| `main-exit.bats` | `cleanup` on startup failures, a closed window, and a second signal | copy of `main.sh` with a stub library, `sudo` on `PATH` |
 | `alfred.bats`, `wallpaper.bats` | The hotkey write and the wallpaper store | scratch `HOME` |
 | `spotlight.bats`, `siri.bats`, `menu-bar.bats`, `display.bats` | Hide rules, suggestion lists, menu bar rows, Universal Control | stubbed `defaults` |
 | `ai.bats` | Copilot shim removal | scratch copy, `sudo` and `pkgutil` stubbed |
@@ -562,7 +569,7 @@ syntax only: shellcheck cannot catch a wrong preference key, and `bats` covers
 the logic but not whether a key is the one macOS reads.
 
 - Run `shellcheck` on every changed script before reporting done.
-- Run `bats test/` when `settings-lib.sh`, `common-script.sh`,
+- Run `bats test/` when `main.sh`, `settings-lib.sh`, `common-script.sh`,
   `optimize-settings.sh`, or a module in `core/settings/` changes.
 - For a settings change, read every key back with `defaults read` as the
   logged-in user and confirm it in System Settings.
