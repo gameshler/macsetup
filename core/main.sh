@@ -15,25 +15,17 @@ SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/mac
 # names the terminal app whose Full Disk Access grant this session uses.
 TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
 
-# Sourcing the shared library runs checkPackageManager, so Homebrew is found,
-# or installed, before the menu opens, and sudo_keepalive becomes available.
-# Installing Homebrew can take the password, and main() replaces these traps
-# only afterwards, so a failed or interrupted install still drops it.
-trap 'sudo -k 2>/dev/null || true' EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
-
+# Runs on every exit, including one while the libraries below are being
+# sourced, so a function they define may not exist yet; its error is hidden.
 cleanup() {
     local status=$?
-    # After a closed window the terminal is gone and every write fails; under
-    # set -e that would end this trap before the removals below.
-    set +e
+    # A second signal must not cut this short, and after a closed window every
+    # write fails, which under set -e or set -u would end it early as well.
+    trap '' HUP INT TERM
+    set +eu
 
-    end_full_disk_access || true
-    end_sudo_session
+    end_full_disk_access 2>/dev/null
+    end_sudo_session 2>/dev/null
     printf '  Administrator session ended.\n'
 
     rm -rf "$TEMP_DIR"
@@ -44,6 +36,19 @@ cleanup() {
         echo "Exited with status $status. Keeping $INSTALL_DIR so the run can be retried and inspected."
     fi
 }
+
+# Installed before sourcing: checkPackageManager can take the password to
+# install Homebrew. Closing the window, ^C or a kill still ends through
+# cleanup, so the grant and the password do not outlive the session.
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Sourcing the shared library runs checkPackageManager, so Homebrew is found,
+# or installed, before the menu opens, and sudo_keepalive becomes available.
+. "$COMMON_SCRIPT"
+. "$SETTINGS_LIB"
 
 setup_display() {
     C_RESET=""
@@ -386,12 +391,6 @@ choose_directory() {
 }
 
 main() {
-    trap cleanup EXIT
-    # Closing the window, ^C or a kill still ends through cleanup, so the grant
-    # and the password do not outlive the session.
-    trap 'exit 129' HUP
-    trap 'exit 130' INT
-    trap 'exit 143' TERM
     setup_display
     startup_checks
     choose_directory
