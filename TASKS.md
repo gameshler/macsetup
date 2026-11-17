@@ -486,15 +486,9 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     assessments on, SIP on, guest account off, no automatic login, crash
     report auto-submit `0`, Remote Login, Screen Sharing and File Sharing not
     loaded, firewall block-all off.
-  - Candidates waiting on the owner, nothing written:
-
-    | Setting | Now | Proposed |
-    | --- | --- | --- |
-    | Automatically allow downloaded signed software through the firewall | enabled | off, so a downloaded app asks before listening |
-    | AirPlay Receiver | key absent, default on | off |
-
-  - Owner, 2026-11-17: do the screen lock and AirPlay Receiver; the signed
-    software firewall option was explained and not chosen.
+  - Owner, 2026-11-17: do the screen lock and AirPlay Receiver. Automatically
+    allow downloaded signed software was explained and not chosen; it stays
+    enabled.
   - **Built, 2026-11-17:** `require_password_immediately` in `security.sh`,
     after stealth mode. `sysadminctl -screenLock immediate -password -` asks
     for the login password on the terminal, not sudo, and only when
@@ -502,10 +496,15 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     immediate`; that sentence, from the binary's own format strings, is the
     read-back. Three tests, six mutations killed; `bats test/` 114 of 114.
     Not run live: it needs the owner's login password.
-  - AirPlay Receiver: preferences snapshotted to `.context/airplay-before`;
-    waiting on the owner to turn it off in General > AirDrop & Handoff, so
-    the key is diffed rather than guessed.
-
+  - **Built, 2026-11-17:** `disable_airplay_receiver` in `security.sh`, after
+    the screen lock. Diffed when the owner turned it off:
+    `-currentHost com.apple.controlcenter AirplayReceiverEnabled` false,
+    spelled correctly; the misspelled key older guides cite does not exist on
+    27.2.1. Restarts `ControlCenter`. One test, five
+    mutations killed; `bats test/` 115 of 115. Already reads `0` here.
+  - Owner check on the next run: stealth mode on in Network > Firewall >
+    Options, the login password asked once and Lock Screen showing
+    Immediately, and AirPlay Receiver still off.
   - Acceptance criteria: stealth mode reads on and shows on in Network >
     Firewall > Options; any further hardening or performance setting is agreed
     first and read back.
