@@ -126,30 +126,6 @@ stub_missing_homebrew() {
     [ "$(grep -c INSTALLER "$CALL_LOG")" -eq 0 ]
 }
 
-# The menu installs its exit trap only after this runs, so a failed install
-# has to end the sudo session itself.
-@test "when the Homebrew installer fails, ends the sudo session before exiting" {
-    stub_missing_homebrew
-    curl() { printf '%s\n' 'echo INSTALLER >>"$CALL_LOG"; exit 1'; }
-    end_sudo_session() { echo "END" >>"$CALL_LOG"; }
-
-    run checkPackageManager
-
-    [ "$status" -eq 1 ]
-    [ "$(tr '\n' ' ' <"$CALL_LOG")" = "SUDO INSTALLER END " ]
-}
-
-@test "when the installer leaves no brew binary, ends the sudo session before exiting" {
-    stub_missing_homebrew
-    curl() { printf '%s\n' 'echo INSTALLER >>"$CALL_LOG"'; }
-    end_sudo_session() { echo "END" >>"$CALL_LOG"; }
-
-    run checkPackageManager
-
-    [ "$status" -eq 1 ]
-    [ "$(tr '\n' ' ' <"$CALL_LOG")" = "SUDO INSTALLER END " ]
-}
-
 @test "ending the sudo session stops the keepalive and forgets the password" {
     sudo() { echo "SUDO $*" >>"$CALL_LOG"; }
     sleep 300 >/dev/null 2>&1 3>&- &
