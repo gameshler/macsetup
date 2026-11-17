@@ -216,7 +216,9 @@ These block specific settings, not the repository as a whole. Each is tracked in
   the plist, and the `com.apple.commerce` domain does not exist. Both must be
   created rather than flipped. The open risk is not MDM but `cfprefsd`, which
   caches a live domain and can write a stale copy back over a `defaults write`.
-  Verification therefore has to survive a restart, not just a re-read.
+  Verification therefore has to survive a restart, not just a re-read. On
+  macOS 27 the pane has no check toggle and macOS deletes
+  `AutomaticCheckEnabled` on its next scan, so only the other five are set.
 - **Display Advanced and AutoFill.** Scope was given on 2026-09-17: disable
   everything in both panes. What blocks them now is enumeration, not the
   requirement -- "everything" is a state without a list, and neither pane's

@@ -2,100 +2,7 @@
 
 ## Current phase: System and security
 
-- [ ] Add `core/tabs/system/security.sh`.
-  - **Status: written and verified everywhere except against the real
-    root-owned plists.** The script, the `verify_value` helper it needed, nine
-    `bats` tests, `shellcheck`, and four stubbed end-to-end runs are done. What
-    is outstanding is one live run, which needs a sudo password, and the manual
-    pane check after a restart. Do not mark this complete until both are done.
-    See "Verification status" below for exactly what is and is not proven.
-  - Scope: firewall on, `pmset -a womp 0`, and the six Software Update keys in
-    the appendix.
-  - Acceptance criteria: `socketfilterfw --getglobalstate` reports enabled;
-    `pmset -g | grep womp` reports 0; all six Software Update keys read back as
-    specified.
-  - Manual validation: re-check the Software Update pane after a restart, not
-    just after the write. `cfprefsd` caches live domains and can write a stale
-    copy back over a `defaults write`.
-  - Note: this is the one script where `sudo` is correct throughout -- every
-    target is `/Library/Preferences`, `pmset`, or `socketfilterfw`. The six
-    Software Update keys are manifest rows whose domain is an absolute path, so
-    the engine adds `sudo` itself; the script must not. `pmset` and
-    `socketfilterfw` are not preferences and are checked with their own `-g` and
-    `--getglobalstate` reads rather than through the engine.
-
-  ### Verification status
-
-  - `verify_value <label> <expected> <actual> [mode]` was added to
-    `settings-lib.sh`, and `verify_setting` is now a read plus a call to it. The
-    firewall and `womp` checks have no domain and key to read, so they could not
-    go through `verify_setting`, but their failures still belong in the same
-    report as the six rows. The alternative was an ad hoc `case` in the tab with
-    its own message format and no entry in the failure count.
-  - Mode choice is load-bearing and is not interchangeable between the two.
-    `socketfilterfw --getglobalstate` prints `Firewall is enabled. (State = 1)`,
-    so the check is `contains "State = 1"`. `pmset -g` prints `womp 0`, and that
-    check must be `exact`, because under a substring test a `womp` of `10` would
-    pass as `0`. There is a `bats` test for exactly that.
-  - Both parsers were checked against the real command output on this machine,
-    not against an assumed format: `awk '$1 == "womp" { print $2 }'` extracts
-    `0`, and the firewall string is as quoted above. `awk` on the first field
-    rather than `grep`, so a future setting whose name merely contains `womp`
-    cannot match.
-  - No owner column on any row. Nothing here is a running app with a preference
-    cache the engine could flush: the System Settings pane reads these when it
-    opens. `cfprefsd` does cache the domain, but the system instance runs as root
-    and would not be reached by the engine's unprivileged `killall`, so a
-    `cfprefsd` owner would have looked like a fix while doing nothing. The tab
-    prints a line saying the pane may need reopening instead.
-  - `bats test/` **45 of 45**, up from 36. Nine new tests cover `verify_value`
-    against the real output strings of both commands, the substring-versus-exact
-    trap, boolean normalization, an empty value from a missing or failing
-    command, the label reaching the report, and `verify_setting` still resolving
-    the per-host scope after being split.
-  - The new tests were mutation-checked. Degrading `exact` to a substring test
-    fails 3 tests including the `womp 10` case; making `verify_value` return 0
-    unconditionally fails 14.
-  - `shellcheck -S warning` clean on `security.sh` and `settings-lib.sh`. The
-    repository-wide gate is **1** finding across **30** scripts, the pre-existing
-    `SC2155` on `start.sh:8`.
-  - Verified 2026-09-16 end to end against a stubbed `sudo`. Every mutating call
-    in this tab goes through `sudo` -- the six rows because the engine elevates
-    an absolute-path domain, and `socketfilterfw --setglobalstate` and
-    `pmset -a womp` because the script calls it directly -- so a single `sudo`
-    stub intercepts all of them. The two reads need no elevation and ran for
-    real. The harness was written to a file, run with `bash`, and gated on a live
-    stub probe before it was allowed to run the tab.
-
-    | Case | Result |
-    | --- | --- |
-    | normal run | applied 6 of 6, `All settings applied and verified`, exit 0 |
-    | call order | keepalive, firewall, `womp`, then the six rows |
-    | every write elevated | 6 `sudo defaults write`, 6 `sudo defaults read`, zero unelevated |
-    | stdin trap | stub `sudo` drains stdin; all 6 rows still processed, so no row was swallowed |
-    | two keys written somewhere nothing reads | applied 4 of 6, those two named, other four still applied, exit 0 |
-    | `sudo` denied outright | all 6 rows reported as failed, exit 0, menu not aborted |
-    | second and third run | applied 6 of 6 both times, idempotent |
-
-  - The failure report prints twice, once from `apply_settings` and once from
-    `settings_report`. That is the documented consequence of a tab that both
-    applies rows and does its own checks, and `desktop-dock.sh` has the same
-    shape. Only failures duplicate; a clean run prints one line.
-  - **Not verified: the live run against the real root-owned plists.** This is
-    the gap carried over from the `settings-lib.sh` task and it is still open --
-    a `sudo`-scoped row has never been exercised against a real root-owned file,
-    only against a stub. The machine is already in the target state for all
-    eight checks, so a plain run would prove nothing. `/tmp/macsetup-security-live.sh`
-    does it properly: snapshot, perturb every target to a wrong value, run the
-    tab, verify with an independent read pass, check `plutil -p` on disk past
-    `cfprefsd`, then run again for idempotency. It leaves `AutomaticCheckEnabled`
-    and the whole `com.apple.commerce` domain **absent**, as the appendix records
-    them, so the run has to create them rather than overwrite something. It
-    switches the firewall off for a few seconds during perturbation and carries
-    an `EXIT` trap that re-enables it even on a crash or `^C`.
-  - **Not verified: the Software Update pane after a restart.** `cfprefsd` caches
-    a live domain and can flush a stale copy back over a `defaults write`, so the
-    pane is the only check that catches it.
+No open tasks.
 
 ## Queued: macOS 27 system optimization
 
@@ -118,45 +25,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
 - 2026-11-17: Full Disk Access is not granted to the terminal, not even for
   a session, because the owner judges it a risk. A setting that needs it is
   set by hand and listed under Set by hand in `README.md`.
-
-- [ ] Disable all Siri suggestions.
-  - Candidate domains on this machine: `com.apple.suggestions`,
-    `com.apple.siri.sirisuggestions`, `com.apple.assistant.support`
-    (`Assistant Enabled` already reads `0`). Keys for the per-app "Show
-    suggestions from" list are not yet identified.
-  - **Controls on 27.2.1, from the English strings of
-    `SiriPreferenceExtension.appex`, 2026-11-16:** the only suggestion
-    settings are the per-app sheet behind "Siri Suggestions & Privacy…", with
-    two checkboxes per app: "Show Siri Suggestions in application" and
-    "Learn from this application" (Contacts and FaceTime word the first one
-    differently).
-  - Read-only state: `com.apple.suggestions` holds an empty
-    `AppCanShowSiriSuggestionsBlacklist`, so the "show" list is likely a
-    list of bundle ids that are turned off. No "learn" list exists yet,
-    presumably because none has been unchecked. `com.apple.siri.sirisuggestions`
-    holds only `osInstalledDates`.
-  - **Diff result, 2026-11-16,** after the owner unchecked both boxes for
-    every app in the sheet: `com.apple.suggestions
-    AppCanShowSiriSuggestionsBlacklist` went from empty to the eleven apps
-    the sheet lists, `com.apple.iBooksX`, `com.apple.iCal`,
-    `com.apple.AddressBook`, `com.apple.FaceTime`, `com.apple.mail`,
-    `com.apple.Maps`, `com.apple.MobileSMS`, `com.apple.news`,
-    `com.apple.podcasts`, `com.apple.reminders` and `com.apple.Safari`. Every
-    other changed file held only window positions, counters or timestamps.
-  - **Built, 2026-11-16:** `core/settings/siri.sh` runs as "Siri
-    suggestions" after Spotlight, through the new `ensure_listed` engine
-    helper that Spotlight's hide rules now share. `test/siri.bats`, two
-    tests; the helper's guards were mutation-checked through both suites.
-    Live, against the owner's already-set domain: all eleven verified and the
-    array left byte-identical. `bats test/` 88 of 88.
-  - **Open: "Learn from this application".** Unchecking it changed nothing
-    readable. Either it is stored where Full Disk Access is needed, or the
-    checkbox was unavailable because Siri is off (`Assistant Enabled = 0`);
-    the owner to confirm which.
-  - Not proven: that a list written by `defaults` takes effect on a Mac where
-    the pane never wrote it. Check on the next fresh install.
-  - Acceptance criteria: Siri > Suggestions and per-app suggestion toggles all
-    read off.
 
 - [ ] Take the sudo password before installing Homebrew.
   - **Known gap, owner, 2026-11-17:** the owner runs this separately on a
@@ -259,6 +127,15 @@ where it generalises.
 - [x] Harden the rest of the system. Firewall and stealth mode on, password
   required immediately, AirPlay Receiver and wake for network access off, all
   read back after a restart, 2026-11-17.
+- [x] Add `core/tabs/system/security.sh`. Firewall on, wake for network
+  access 0 and five Software Update keys read back after a restart.
+  `AutomaticCheckEnabled` was dropped at the owner's request: macOS 27 has no
+  check toggle, keeps checking, and deletes the key on its next scan,
+  2026-11-17.
+- [x] Disable all Siri suggestions. "Show Siri Suggestions in application" is
+  off for all eleven apps after a restart. The "Learn from this application"
+  box the pane's strings name does not appear on this Mac, so there is
+  nothing to set, 2026-11-17.
 
 ### Menu and installer
 
@@ -464,10 +341,10 @@ upgrade-fragile part of the plan. Verify after every macOS major update.
 | Install Security Responses and system files | `CriticalUpdateInstall` | `true` | already `1` |
 | (same row, second key) | `ConfigDataInstall` | `true` | already `1` |
 
-On 27.2.1 every key reads as specified, `AutomaticCheckEnabled` included. The
-pane no longer has a check toggle, only a Check for Updates button, and
-`softwareupdate --schedule` still reports automatic checking on, so that key
-no longer maps to anything visible. The security row is renamed Install system
+On 27.2.1 the pane no longer has a check toggle, only a Check for Updates
+button, and `softwareupdate --schedule` still reports automatic checking on.
+macOS deletes `AutomaticCheckEnabled` on its next scan, so the step no longer
+writes it; the other five keys hold after a restart. The security row is renamed Install system
 data files and security updates.
 
 The last row of the UI is backed by two keys. Setting only one leaves the
