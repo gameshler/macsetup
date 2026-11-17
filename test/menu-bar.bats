@@ -49,10 +49,10 @@ stored() {
     [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
 }
 
-@test "leaves Bluetooth as the owner set it" {
+@test "hides the Bluetooth icon too; only the radio is left to the owner" {
     menu_bar
 
-    [ ! -e "$STORE/byhost_com.apple.controlcenter_Bluetooth" ]
+    [ "$(stored "byhost com.apple.controlcenter Bluetooth")" = "8" ]
 }
 
 @test "restarts Control Center and the input menu once each, and Siri AI not at all when its item is already hidden" {

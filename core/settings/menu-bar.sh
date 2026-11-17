@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 # Menu bar: hide the system controls, the input menu and the Siri AI item,
-# and turn off suggestions in the Control Gallery. Bluetooth is left as the
-# owner set it. Sourced by core/tabs/system/optimize-settings.sh, which runs it.
+# and turn off suggestions in the Control Gallery. The Bluetooth icon is
+# hidden too; only the Bluetooth radio is left to the owner.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 # Siri AI.app owns com.apple.campo. Hiding its item in the pane deletes this
 # key rather than writing false, so the step does the same.
@@ -27,6 +28,7 @@ menu_bar() {
     apply_settings <<'EOF'
 -currentHost com.apple.controlcenter | ShowSuggestions               | bool | false | ControlCenter
 -currentHost com.apple.controlcenter | Battery                       | int  | 8     | ControlCenter
+-currentHost com.apple.controlcenter | Bluetooth                     | int  | 8     | ControlCenter
 -currentHost com.apple.controlcenter | Display                       | int  | 8     | ControlCenter
 -currentHost com.apple.controlcenter | FocusModes                    | int  | 8     | ControlCenter
 -currentHost com.apple.controlcenter | NowPlaying                    | int  | 8     | ControlCenter
