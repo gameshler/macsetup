@@ -1,9 +1,9 @@
 # Project instructions
 
-Read and follow `AGENTS.md` before planning or changing this repository. Use its
-documentation routing to load `SPEC.md`, `ROADMAP.md`, or `TASKS.md` only when
-the task requires them.
+Read and follow `AGENTS.md` before planning or changing this repository. Load
+`SPEC.md`, `ROADMAP.md`, or `TASKS.md` only when the task needs them, as its
+documentation routing describes.
 
-This repository configures a Mac. Almost every script it contains changes the
-machine it runs on, and most of those changes are not reverted by re-running the
-script with a different value. Read `AGENTS.md` before running anything here.
+This repository configures a Mac. Almost every script changes the machine it
+runs on, and most changes are not undone by running the script again with a
+different value. Read `AGENTS.md` before running anything.
