@@ -465,11 +465,11 @@ option. Under `/bin/bash` the glob form silently degrades to `*/*.sh` and covers
 the wallpaper store against a scratch `HOME`, the Spotlight hide rules, Siri
 suggestion list and menu bar rows against a stubbed `defaults`, the Copilot
 shim removal against a scratch copy with `sudo` and `pkgutil` stubbed, the
-Battery options against a stubbed `pmset`, and stealth mode and the screen
-lock against a scratch `socketfilterfw` and a stubbed `sysadminctl`. Most of
-this repository changes the machine it runs on and cannot be tested; those
-two are the exception, because deciding what to write or install and
-whether it took is string handling.
+Battery options against a stubbed `pmset`, and stealth mode, the screen lock
+and AirPlay Receiver against a scratch `socketfilterfw` and stubbed
+`sysadminctl` and `defaults`. Most of this repository changes the machine it
+runs on and cannot be tested; those two are the exception, because deciding
+what to write or install and whether it took is string handling.
 `test/common-script.bats` stubs `brew` as a shell function and skips when no
 real Homebrew is present, because sourcing the library without one runs the
 Homebrew installer. Use plain

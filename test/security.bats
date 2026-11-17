@@ -80,18 +80,19 @@ EOF
     [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
 }
 
-@test "the security area turns stealth mode on after the firewall, then the screen lock" {
+@test "the security area turns stealth mode on after the firewall, then the screen lock and AirPlay" {
     local calls="$BATS_TEST_TMPDIR/calls"
     enable_firewall() { echo firewall >>"$calls"; }
     enable_stealth_mode() { echo stealth >>"$calls"; }
     require_password_immediately() { echo lock >>"$calls"; }
+    disable_airplay_receiver() { echo airplay >>"$calls"; }
     disable_wake_on_network() { :; }
     set_software_update() { :; }
     sudo_keepalive() { return 0; }
 
     security
 
-    [ "$(tr '\n' ' ' <"$calls")" = "firewall stealth lock " ]
+    [ "$(tr '\n' ' ' <"$calls")" = "firewall stealth lock airplay " ]
 }
 
 @test "with a five-minute delay, asks for the login password once and requires it immediately" {
@@ -118,4 +119,20 @@ EOF
 
     [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
     printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "sysadminctl -screenLock"
+}
+
+@test "turns AirPlay Receiver off for this Mac and restarts Control Center" {
+    local store="$BATS_TEST_TMPDIR/airplay" calls="$BATS_TEST_TMPDIR/airplay-calls"
+    defaults() {
+        [ "$1 $2 $3" = "-currentHost write com.apple.controlcenter" ] && [ "$4" = "AirplayReceiverEnabled" ] &&
+            printf '%s\n' "$6" >"$store" && return 0
+        [ "$1 $2 $3 $4" = "-currentHost read com.apple.controlcenter AirplayReceiverEnabled" ] && cat "$store"
+    }
+    killall() { echo "KILLALL $*" >>"$calls"; }
+
+    disable_airplay_receiver
+
+    [ "$(cat "$store")" = "false" ]
+    grep -qx "KILLALL ControlCenter" "$calls"
+    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
 }

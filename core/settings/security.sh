@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Security: firewall and stealth mode on, the password required as soon as
-# the screen locks, automatic updates off.
+# the screen locks, AirPlay Receiver off, automatic updates off.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
@@ -51,6 +51,17 @@ require_password_immediately() {
     verify_value "sysadminctl -screenLock" "screenLock delay is immediate" "$(screen_lock_state)" contains || true
 }
 
+# General > AirDrop & Handoff > AirPlay Receiver. Control Center runs the
+# receiver. Diffed on macOS 27.2.1: the key is spelled correctly, unlike the
+# misspelled one older macOS versions used.
+disable_airplay_receiver() {
+    printf "%b\n" "Turning off AirPlay Receiver..."
+
+    apply_settings <<'EOF'
+-currentHost com.apple.controlcenter | AirplayReceiverEnabled | bool | false | ControlCenter
+EOF
+}
+
 disable_wake_on_network() {
     local womp
 
@@ -83,6 +94,7 @@ security() {
     enable_firewall
     enable_stealth_mode
     require_password_immediately
+    disable_airplay_receiver
     disable_wake_on_network
     set_software_update
 
