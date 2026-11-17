@@ -22,7 +22,17 @@ set_pmset() {
     verify_value "pmset $section $key" "$value" "$(pmset_value "$section" "$key")" exact || true
 }
 
+# A desktop Mac has no battery, so it has none of these options.
+has_battery() {
+    pmset -g batt 2>/dev/null | grep -q InternalBattery
+}
+
 battery() {
+    if ! has_battery; then
+        printf "%b\n" "This Mac has no battery; leaving the Battery options alone."
+        return 0
+    fi
+
     printf "%b\n" "Turning off the Battery options..."
 
     # Slightly dim the display on battery.
