@@ -5,6 +5,53 @@ SETTINGS_FAILED_KEYS=""
 
 _settings_activate="/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings"
 
+# Present on every install and world-readable (0644), so ordinary permissions
+# never refuse it: only TCC does, and only without Full Disk Access. The
+# per-user TCC.db is not usable, it no longer exists on macOS 27.
+FULL_DISK_ACCESS_PROBE="/Library/Application Support/com.apple.TCC/TCC.db"
+
+full_disk_access_granted() {
+    head -c 1 "$FULL_DISK_ACCESS_PROBE" >/dev/null 2>&1
+}
+
+_full_disk_access_rows() {
+    sqlite3 "$FULL_DISK_ACCESS_PROBE" \
+        "SELECT COUNT(*) FROM access WHERE service = 'kTCCServiceSystemPolicyAllFiles' AND client = '$1' AND auth_value = 2;" 2>/dev/null
+}
+
+_full_disk_access_still_granted() {
+    local rows
+
+    full_disk_access_granted || return 1
+    rows="$(_full_disk_access_rows "$1")" || return 0
+    [ "$rows" != "0" ]
+}
+
+# `tccutil reset SystemPolicyAllFiles` without an app id clears the grant of
+# every app on the machine, so an empty or malformed id stops here. The id is
+# also interpolated into the read-back query, which the same check protects.
+revoke_full_disk_access() {
+    case "$1" in
+    "" | *[!A-Za-z0-9.-]*) return 1 ;;
+    esac
+
+    tccutil reset SystemPolicyAllFiles "$1" >/dev/null 2>&1 || return 1
+    ! _full_disk_access_still_granted "$1"
+}
+
+# Every step that needs Full Disk Access, as named to the user. The home
+# screen and the settings run both announce this one list up front, so a step
+# that needs the grant is added here rather than checking on its own.
+FULL_DISK_ACCESS_STEPS="Reduce motion and emptying the Trash"
+
+check_full_disk_access() {
+    full_disk_access_granted && return 0
+
+    printf "%b\n" "Without Full Disk Access, which this terminal does not have, these steps will fail: $FULL_DISK_ACCESS_STEPS."
+    printf "%b\n" "Grant it in System Settings > Privacy & Security > Full Disk Access, then quit and reopen the terminal."
+    return 1
+}
+
 _settings_trim() {
     local s="$1"
     s="${s#"${s%%[![:space:]]*}"}"
@@ -134,6 +181,32 @@ verify_setting() {
     local domain="$1" key="$2" expected="$3" mode="${4:-exact}"
 
     verify_value "$domain $key" "$expected" "$(_settings_read "$domain" "$key")" "$mode"
+}
+
+_settings_array_lists() {
+    defaults read "$1" "$2" </dev/null 2>/dev/null |
+        tr -d ' ",()' | grep -qxF -- "$3"
+}
+
+# ensure_listed <domain> <key> <item>...
+# Adds each missing item to an array preference with -array-add, then reads
+# every item back. The array is never rewritten whole, so an item listed some
+# other way is kept. Items are matched whole and must not contain spaces,
+# quotes, commas or parentheses, which the read-back strips.
+ensure_listed() {
+    local domain="$1" key="$2" item state
+    shift 2
+
+    for item in "$@"; do
+        _settings_array_lists "$domain" "$key" "$item" && continue
+        defaults write "$domain" "$key" -array-add "$item" </dev/null 2>/dev/null || true
+    done
+
+    for item in "$@"; do
+        state="missing"
+        _settings_array_lists "$domain" "$key" "$item" && state="listed"
+        verify_value "$domain $key $item" "listed" "$state" exact || true
+    done
 }
 
 settings_report() {

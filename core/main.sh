@@ -6,22 +6,42 @@ export DOT_FILES="$INSTALL_DIR/dotfiles"
 export TABS_DIR="$INSTALL_DIR/core/tabs"
 export COMMON_SCRIPT="$TABS_DIR/common-script.sh"
 export SETTINGS_LIB="$TABS_DIR/settings-lib.sh"
+# Outside TABS_DIR so the menu does not list them; optimize-settings.sh runs them.
+export SETTINGS_DIR="$INSTALL_DIR/core/settings"
 
-export_brew_env() {
-    local brew_bin
-    for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
-        if [[ -x "$brew_bin" ]]; then
-            eval "$("$brew_bin" shellenv)"
-            return 0
-        fi
-    done
-    return 1
-}
-export_brew_env || true
+SETUP_COMMAND='bash <(curl -fsSL https://raw.githubusercontent.com/gameshler/macsetup/main/start.sh)'
 
+# Set by macOS for a process started from an app bundle, and inherited, so it
+# names the terminal app whose Full Disk Access grant this session uses.
+TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
+
+# Runs on every exit, including one while the libraries below are being
+# sourced, so a function they define may not exist yet.
 cleanup() {
     local status=$?
+    # A second signal must not cut this short. After a closed window every
+    # write fails, which under set -e would end it early, and a library helper
+    # that reads an unset variable would do the same under set -u.
+    trap '' HUP INT TERM
+    set +eu
 
+    if declare -F end_full_disk_access >/dev/null; then
+        end_full_disk_access
+    fi
+    if declare -F end_sudo_session >/dev/null; then
+        local held="${SUDO_KEEPALIVE_STARTED:-0}"
+        end_sudo_session
+        [ "$held" = "1" ] && printf '  Administrator session ended.\n'
+    fi
+
+    # start.sh sets TEMP_DIR alongside the disposable unpack. A run without it
+    # was started some other way, so its INSTALL_DIR is kept even on a clean
+    # exit. This is not a general safeguard: a run with TEMP_DIR set still
+    # deletes whatever INSTALL_DIR names.
+    if [ -z "${TEMP_DIR:-}" ]; then
+        echo "TEMP_DIR is not set. Keeping $INSTALL_DIR."
+        return
+    fi
     rm -rf "$TEMP_DIR"
 
     if [ "$status" -eq 0 ]; then
@@ -30,6 +50,19 @@ cleanup() {
         echo "Exited with status $status. Keeping $INSTALL_DIR so the run can be retried and inspected."
     fi
 }
+
+# Installed before sourcing: checkPackageManager can take the password to
+# install Homebrew. Closing the window, ^C or a kill still ends through
+# cleanup, so the grant and the password do not outlive the session.
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Sourcing the shared library runs checkPackageManager, so Homebrew is found,
+# or installed, before the menu opens, and sudo_keepalive becomes available.
+. "$COMMON_SCRIPT"
+. "$SETTINGS_LIB"
 
 setup_display() {
     C_RESET=""
@@ -87,6 +120,93 @@ header() {
 
 pause() {
     read -rp "  Press Enter to continue "
+}
+
+# Probed once at startup: a grant only takes effect after the terminal is
+# reopened, which restarts the menu anyway.
+full_disk_access_status() {
+    if [ "$FULL_DISK_ACCESS" = "1" ]; then
+        printf '  %sFull Disk Access: granted%s\n\n' "$C_DIM" "$C_RESET"
+        return 0
+    fi
+
+    printf '  %sFull Disk Access: not granted to this terminal%s\n' "$C_BOLD" "$C_RESET"
+    printf '  %s%s will fail without it.%s\n' "$C_DIM" "$FULL_DISK_ACCESS_STEPS" "$C_RESET"
+    printf '  %sSystem Settings > Privacy & Security > Full Disk Access%s\n\n' "$C_DIM" "$C_RESET"
+}
+
+FULL_DISK_ACCESS_PANE="x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
+
+# Taken here rather than in a tab: the keepalive lives as long as the menu,
+# and the exported SUDO_KEEPALIVE_STARTED stops each tab asking again.
+startup_sudo() {
+    if sudo_keepalive; then
+        printf '\n'
+        return 0
+    fi
+
+    printf '  %sNo administrator access.%s Steps that need it will ask again or fail.\n\n' "$C_RED" "$C_RESET"
+    return 1
+}
+
+startup_full_disk_access() {
+    FULL_DISK_ACCESS=0
+    if full_disk_access_granted; then
+        FULL_DISK_ACCESS=1
+    fi
+
+    full_disk_access_status
+    if [ "$FULL_DISK_ACCESS" = "1" ] && [ -n "$TERMINAL_APP_ID" ]; then
+        printf '  It is revoked from %s when you quit.\n\n' "$TERMINAL_APP_ID"
+        return 0
+    fi
+    if [ "$FULL_DISK_ACCESS" = "1" ]; then
+        printf '  %sThis terminal has no app id, so it cannot be revoked when you quit.%s\n' "$C_RED" "$C_RESET"
+        printf '  Turn it off in Full Disk Access when you are done.\n\n'
+        return 0
+    fi
+
+    if open "$FULL_DISK_ACCESS_PANE" >/dev/null 2>&1; then
+        printf '  System Settings is open at Full Disk Access. Turn it on for this\n'
+    else
+        printf '  %sCould not open System Settings.%s In Full Disk Access, turn it on for this\n' "$C_RED" "$C_RESET"
+    fi
+    printf '  terminal (%s), let macOS quit and reopen it, then run:\n\n' "${TERMINAL_APP_ID:-unknown app id}"
+    printf '    %s\n\n' "$SETUP_COMMAND"
+    printf '  It is granted for that run only and revoked when you quit.\n\n'
+
+    read -rp "  Press Enter to continue without it " || true
+    return 1
+}
+
+# Revoked only when this session started with the grant. A session that
+# started without it is the one where the grant was just given, and macOS
+# then quits the terminal to apply it: revoking on that exit would undo it.
+end_full_disk_access() {
+    [ "${FULL_DISK_ACCESS:-0}" = "1" ] || return 0
+
+    if revoke_full_disk_access "$TERMINAL_APP_ID"; then
+        printf '  Full Disk Access revoked from %s.\n' "$TERMINAL_APP_ID"
+        return 0
+    fi
+
+    printf '  Could not revoke Full Disk Access from %s.\n' "${TERMINAL_APP_ID:-this terminal}"
+    printf '  Turn it off in System Settings > Privacy & Security > Full Disk Access.\n'
+}
+
+# A missing grant already stops at its own prompt, so the pause is only for a
+# refused password on its own.
+startup_checks() {
+    local sudo_ok=1
+
+    clear_screen
+    header "Startup checks"
+    printf '\n'
+
+    startup_sudo || sudo_ok=0
+    if startup_full_disk_access && [ "$sudo_ok" = "0" ]; then
+        pause || true
+    fi
 }
 
 meta_field() {
@@ -162,6 +282,10 @@ draw_menu() {
     clear_screen
     header "$crumb"
     printf '\n'
+
+    if [ "$depth" -eq 0 ]; then
+        full_disk_access_status
+    fi
 
     ENTRIES=()
     LABELS=()
@@ -281,8 +405,8 @@ choose_directory() {
 }
 
 main() {
-    trap cleanup EXIT
     setup_display
+    startup_checks
     choose_directory
 }
 

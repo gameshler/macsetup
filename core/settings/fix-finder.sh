@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-# menu: Finder
-# desc: List view everywhere, path bar, clean desktop
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Finder: list view everywhere, path bar, clean desktop.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 set_list_view_defaults() {
     local view_settings='{ "columns" = ( { "ascending" = 1; "identifier" = "name"; "visible" = 1; "width" = 300; }, { "ascending" = 0; "identifier" = "dateModified"; "visible" = 1; "width" = 181; }, { "ascending" = 0; "identifier" = "size"; "visible" = 1; "width" = 97; } ); "iconSize" = 16; "showIconPreview" = 0; "sortColumn" = "name"; "textSize" = 12; "useRelativeDates" = 1; }'
@@ -67,8 +64,4 @@ com.apple.finder | SidebarPlacesSectionDisclosedState  | bool   | true          
 com.apple.finder | SidebarShowingiCloudDesktop         | bool   | false          | Finder
 NSGlobalDomain   | NSTableViewDefaultSizeMode          | int    | 1              | Finder
 EOF
-
-    settings_report
 }
-
-fix_finder

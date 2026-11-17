@@ -94,8 +94,8 @@ killall_count() {
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 1 of 1"* ]]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" == *"Applied 1 of 1"* ]] || false
+    [[ "$output" != *"did not apply"* ]] || false
     [ "$(stored com.apple.dock tilesize)" = "16" ]
 }
 
@@ -108,11 +108,11 @@ com.apple.finder | ShowStatusBar | bool | true | Finder')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 2 of 3"* ]]
-    [[ "$output" == *"1 setting(s) did not apply"* ]]
-    [[ "$output" == *"com.apple.finder ShowPathbarr"* ]]
-    [[ "$output" != *"tilesize --"* ]]
-    [[ "$output" != *"ShowStatusBar --"* ]]
+    [[ "$output" == *"Applied 2 of 3"* ]] || false
+    [[ "$output" == *"1 setting(s) did not apply"* ]] || false
+    [[ "$output" == *"com.apple.finder ShowPathbarr"* ]] || false
+    [[ "$output" != *"tilesize --"* ]] || false
+    [[ "$output" != *"ShowStatusBar --"* ]] || false
     [ "$(stored com.apple.dock tilesize)" = "16" ]
     [ "$(stored com.apple.finder ShowStatusBar)" = "1" ]
 }
@@ -124,8 +124,8 @@ com.apple.finder | ShowStatusBar | bool | true | Finder')"
 
     [ "$status" -eq 0 ]
     [ "$(stored com.apple.dock autohide)" = "1" ]
-    [[ "$output" == *"Applied 1 of 1"* ]]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" == *"Applied 1 of 1"* ]] || false
+    [[ "$output" != *"did not apply"* ]] || false
 }
 
 @test "a boolean written as false and read back as 0 is not a false failure" {
@@ -135,7 +135,7 @@ com.apple.finder | ShowStatusBar | bool | true | Finder')"
 
     [ "$status" -eq 0 ]
     [ "$(stored com.apple.dock show-recents)" = "0" ]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" != *"did not apply"* ]] || false
 }
 
 @test "an empty owner column is accepted and restarts nothing" {
@@ -145,8 +145,8 @@ NSGlobalDomain | com.apple.swipescrolldirection | bool | false |')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 2 of 2"* ]]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" == *"Applied 2 of 2"* ]] || false
+    [[ "$output" != *"did not apply"* ]] || false
     [ "$(grep -c '^KILLALL' "$CALL_LOG" || true)" -eq 0 ]
 }
 
@@ -158,8 +158,8 @@ NSGlobalDomain | com.apple.swipescrolldirection | bool | false |')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 1 of 1"* ]]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" == *"Applied 1 of 1"* ]] || false
+    [[ "$output" != *"did not apply"* ]] || false
     [ "$(stored com.apple.commerce AutoUpdate)" = "0" ]
 }
 
@@ -173,7 +173,7 @@ NSGlobalDomain | com.apple.swipescrolldirection | bool | false |')"
                  echo REACHED-END"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"REACHED-END"* ]]
+    [[ "$output" == *"REACHED-END"* ]] || false
 }
 
 @test "duplicate owners collapse to one restart" {
@@ -185,7 +185,7 @@ com.apple.finder | ShowPathbar | bool | true | Finder')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 4 of 4"* ]]
+    [[ "$output" == *"Applied 4 of 4"* ]] || false
     [ "$(killall_count Dock)" -eq 1 ]
     [ "$(killall_count Finder)" -eq 1 ]
 }
@@ -198,7 +198,7 @@ com.apple.finder | ShowPathbar | bool | true | Finder')"
 
     [ "$status" -eq 0 ]
     [ "$(killall_count Spotlight)" -eq 1 ]
-    [[ "$output" == *"Applied 2 of 2"* ]]
+    [[ "$output" == *"Applied 2 of 2"* ]] || false
 }
 
 @test "a stopped-process restart does not abort a caller under set -e" {
@@ -210,7 +210,7 @@ com.apple.finder | ShowPathbar | bool | true | Finder')"
                  echo REACHED-END"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"REACHED-END"* ]]
+    [[ "$output" == *"REACHED-END"* ]] || false
 }
 
 @test "a run with failed keys still returns 0" {
@@ -222,8 +222,8 @@ com.x | C | bool | true |')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 0 of 3"* ]]
-    [[ "$output" == *"3 setting(s) did not apply"* ]]
+    [[ "$output" == *"Applied 0 of 3"* ]] || false
+    [[ "$output" == *"3 setting(s) did not apply"* ]] || false
 }
 
 @test "the failure count is non-zero even though the status is 0" {
@@ -245,7 +245,7 @@ com.x | K5 | int | 5 |')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 5 of 5"* ]]
+    [[ "$output" == *"Applied 5 of 5"* ]] || false
     [ "$(stored com.x K5)" = "5" ]
 }
 
@@ -260,9 +260,9 @@ com.x | K5 | int | 5 |')"
     run apply_manifest "$f2"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"KeyB"* ]]
-    [[ "$output" != *"KeyA"* ]]
-    [[ "$output" == *"1 setting(s) did not apply"* ]]
+    [[ "$output" == *"KeyB"* ]] || false
+    [[ "$output" != *"KeyA"* ]] || false
+    [[ "$output" == *"1 setting(s) did not apply"* ]] || false
 }
 
 @test "comments and blank lines are ignored" {
@@ -274,7 +274,7 @@ com.apple.dock | tilesize | int | 16 | Dock
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 1 of 1"* ]]
+    [[ "$output" == *"Applied 1 of 1"* ]] || false
 }
 
 @test "an unknown type is reported and does not stop the remaining rows" {
@@ -284,7 +284,7 @@ com.x | Good | int      | 42 |')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"unknown type 'notatype'"* ]]
+    [[ "$output" == *"unknown type 'notatype'"* ]] || false
     [ "$(stored com.x Good)" = "42" ]
 }
 
@@ -303,8 +303,8 @@ com.x | Good | int      | 42 |')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 0 of 1"* ]]
-    [[ "$output" == *"empty value, which cannot be verified"* ]]
+    [[ "$output" == *"Applied 0 of 1"* ]] || false
+    [[ "$output" == *"empty value, which cannot be verified"* ]] || false
     [ "$(grep -c '^DEFAULTS write' "$CALL_LOG" || true)" -eq 0 ]
 }
 
@@ -326,7 +326,7 @@ sudo_calls() {
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 1 of 1"* ]]
+    [[ "$output" == *"Applied 1 of 1"* ]] || false
     [ "$(sudo_calls 'defaults write /Library/Preferences/com.apple.SoftwareUpdate')" -eq 1 ]
     [ "$(sudo_calls 'defaults read /Library/Preferences/com.apple.SoftwareUpdate')" -eq 1 ]
 }
@@ -347,7 +347,7 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 2 of 2"* ]]
+    [[ "$output" == *"Applied 2 of 2"* ]] || false
     [ "$(grep -c '^SUDO defaults' "$CALL_LOG" || true)" -eq 2 ]
     [ "$(grep -c '^SUDO defaults.*com.apple.dock' "$CALL_LOG" || true)" -eq 0 ]
 }
@@ -358,8 +358,8 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 1 of 1"* ]]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" == *"Applied 1 of 1"* ]] || false
+    [[ "$output" != *"did not apply"* ]] || false
     [ "$(grep -c '^DEFAULTS -currentHost write NSGlobalDomain' "$CALL_LOG" || true)" -eq 1 ]
     [ "$(grep -c '^DEFAULTS -currentHost read NSGlobalDomain' "$CALL_LOG" || true)" -eq 1 ]
 }
@@ -392,8 +392,8 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 2 of 2"* ]]
-    [[ "$output" != *"did not apply"* ]]
+    [[ "$output" == *"Applied 2 of 2"* ]] || false
+    [[ "$output" != *"did not apply"* ]] || false
     [ "$(stored NSGlobalDomain com.apple.mouse.tapBehavior)" = "0" ]
     [ "$(stored ByHost__NSGlobalDomain com.apple.mouse.tapBehavior)" = "1" ]
 }
@@ -414,8 +414,8 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"1 setting(s) did not apply"* ]]
-    [[ "$output" == *"-currentHost NSGlobalDomain com.apple.mouse.tapBehavior"* ]]
+    [[ "$output" == *"1 setting(s) did not apply"* ]] || false
+    [[ "$output" == *"-currentHost NSGlobalDomain com.apple.mouse.tapBehavior"* ]] || false
 }
 
 @test "verify_setting reads the per-host scope" {
@@ -438,7 +438,7 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     run apply_manifest "$f"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Applied 3 of 3"* ]]
+    [[ "$output" == *"Applied 3 of 3"* ]] || false
     [ "$(grep -c '^SUDO defaults' "$CALL_LOG" || true)" -eq 2 ]
     [ "$(grep -c '^DEFAULTS -currentHost' "$CALL_LOG" || true)" -eq 2 ]
     [ "$(grep -c '^SUDO defaults -currentHost' "$CALL_LOG" || true)" -eq 0 ]
@@ -497,7 +497,7 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
 
     run settings_report
-    [[ "$output" == *"expected not to contain 'enabled = 1'"* ]]
+    [[ "$output" == *"expected not to contain 'enabled = 1'"* ]] || false
 }
 
 @test "verify_setting absent mode treats a missing key as absent" {
@@ -514,7 +514,7 @@ com.apple.dock | tilesize | int | 16 | Dock')"
 
     verify_setting com.x K 1 notamode || true
     run settings_report
-    [[ "$output" == *"unknown verify mode 'notamode'"* ]]
+    [[ "$output" == *"unknown verify mode 'notamode'"* ]] || false
 }
 
 @test "verify_setting failures land in the shared report" {
@@ -528,8 +528,8 @@ com.apple.dock | tilesize | int | 16 | Dock')"
 
     run settings_report
     [ "$status" -eq 0 ]
-    [[ "$output" == *"2 setting(s) did not apply"* ]]
-    [[ "$output" == *"com.apple.finder Missing"* ]]
+    [[ "$output" == *"2 setting(s) did not apply"* ]] || false
+    [[ "$output" == *"com.apple.finder Missing"* ]] || false
 }
 
 @test "verify_value contains mode matches a substring of command output" {
@@ -581,8 +581,8 @@ com.apple.dock | tilesize | int | 16 | Dock')"
     [ "$SETTINGS_FAILED_COUNT" -eq 2 ]
 
     run settings_report
-    [[ "$output" == *"socketfilterfw --getglobalstate"* ]]
-    [[ "$output" == *"pmset womp -- expected '0', read back '1'"* ]]
+    [[ "$output" == *"socketfilterfw --getglobalstate"* ]] || false
+    [[ "$output" == *"pmset womp -- expected '0', read back '1'"* ]] || false
 }
 
 @test "verify_value rejects an unknown mode" {

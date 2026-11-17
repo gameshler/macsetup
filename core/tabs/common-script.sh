@@ -41,10 +41,23 @@ sudo_keepalive() {
             sleep 50
         done
     ) >/dev/null 2>&1 &
+    SUDO_KEEPALIVE_PID=$!
 
     SUDO_KEEPALIVE_STARTED=1
     export SUDO_KEEPALIVE_STARTED
     return 0
+}
+
+# Stops the keepalive and drops the cached credentials at once, rather than
+# leaving them valid for sudo's timeout after the last use.
+end_sudo_session() {
+    if [ -n "${SUDO_KEEPALIVE_PID:-}" ]; then
+        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+        SUDO_KEEPALIVE_PID=""
+    fi
+
+    sudo -k 2>/dev/null || true
+    SUDO_KEEPALIVE_STARTED=0
 }
 
 _brew_alias_installed() {
@@ -88,18 +101,36 @@ _brew_install_batch() {
 
     if [ "$_kind" = cask ]; then
         sudo_keepalive || printf "%b\n" "No held sudo session; casks may prompt individually."
-        if brew install --cask --no-ask "$@"; then
-            printf "%b\n" "Installed: $*"
-            return 0
-        fi
-    else
-        if brew install --formula --no-ask "$@"; then
-            printf "%b\n" "Installed: $*"
-            return 0
-        fi
     fi
 
-    printf "%b\n" "Failed to install one or more of: $*"
+    if brew install "--$_kind" --no-ask "$@"; then
+        printf "%b\n" "Installed: $*"
+        return 0
+    fi
+
+    _brew_install_each "$_kind" "$@"
+}
+
+# One unknown name fails a whole `brew install` before anything is installed,
+# so a batch failure is retried one package at a time.
+_brew_install_each() {
+    _kind="$1"
+    shift
+    _failed=""
+
+    printf "%b\n" "The batch failed; retrying one package at a time..."
+
+    for _pkg in "$@"; do
+        _brew_alias_installed "$_kind" "$_pkg" && continue
+        brew install "--$_kind" --no-ask "$_pkg" || _failed="$_failed $_pkg"
+    done
+
+    if [ -z "$_failed" ]; then
+        printf "%b\n" "Installed: $*"
+        return 0
+    fi
+
+    printf "%b\n" "Failed to install:$_failed"
     return 1
 }
 
@@ -131,6 +162,14 @@ checkPackageManager() {
     fi
 
     printf "%b\n" "Homebrew is not installed"
+
+    # NONINTERACTIVE makes the installer run `sudo -n`, which fails instead of
+    # prompting, so the credentials have to be cached before it starts.
+    if ! sudo_keepalive; then
+        printf "%b\n" "Homebrew needs administrator access to install"
+        exit 1
+    fi
+
     printf "%b\n" "Installing Homebrew..."
 
     if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then

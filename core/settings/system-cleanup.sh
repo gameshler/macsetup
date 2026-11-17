@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 
-# menu: System Cleanup
-# desc: Empty Trash, opt out of Apple Intelligence
-
-. "$COMMON_SCRIPT"
-. "$SETTINGS_LIB"
+# Cleanup: empty the Trash and old logs, keep Spaces in a fixed order.
+# Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 cleanup_system() {
     printf "%b\n" "Performing system cleanup..."
 
     apply_settings <<'EOF'
-com.apple.dock                            | mru-spaces | bool | false | Dock
-com.apple.CloudSubscriptionFeatures.optIn | 545129924  | bool | false |
+com.apple.dock | mru-spaces | bool | false | Dock
 EOF
 
     printf "%b\n" "Emptying Trash..."
@@ -25,9 +21,5 @@ EOF
     printf "%b\n" "Removing old log files..."
     sudo_keepalive || printf "%b\n" "No held sudo session; log cleanup may prompt or be skipped."
     find /var/log -type f \( -name "*.log" -o -name "*.old" -o -name "*.err" \) \
-        -mtime +30 -exec sudo rm -f {} +
-
-    settings_report
+        -mtime +30 -exec sudo rm -f {} + || true
 }
-
-cleanup_system
