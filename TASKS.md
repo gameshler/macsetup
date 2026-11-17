@@ -119,144 +119,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   a session, because the owner judges it a risk. A setting that needs it is
   set by hand and listed under Set by hand in `README.md`.
 
-- [ ] Fix the Alfred cmd+space hotkey not applying.
-  - **Status: fixed 2026-11-16, awaiting the owner's live check.** Do not mark
-    this complete until a run with this Mac's local folder moved aside binds
-    cmd+space and the hotkey opens Alfred without visiting its preferences.
-  - Confirmed read-only on this machine before the change: `prefs.json` was
-    written at 23:48 on 2026-11-15 with `localhash`
-    `a893a2b86f5f53d443d65a4acf51e39fe0ffa663`, three minutes before the tab
-    ran, and the hand-set `local/<hash>/hotkey/prefs.plist` holds exactly
-    `default = { key = 49; mod = 1048576; string = " " }`, which is what the
-    step writes.
-  - `local_prefs_dir` now returns `local/<localhash>` from `prefs.json`
-    instead of the first folder that happens to exist, and `set_hotkey`
-    creates it. Choosing by id also stops a synced bundle with several Macs'
-    folders getting the hotkey written into the wrong one. The id becomes a
-    path, so anything but 40 lowercase hex characters is refused.
-  - `test/alfred.bats`, six tests against a scratch `HOME` with real
-    `plutil`: no local folder yet, binds cmd+space; another Mac's folder
-    present, writes only this Mac's; no `prefs.json`, fails with the launch
-    hint, creates nothing, and the failure reaches the report; a 40-character
-    id that climbs out of `local/`, and a short hex id, are each refused with
-    the scratch tree unchanged. Each guard was mutation-checked; the first
-    version of the traversal test passed without the hex guard, because the
-    length check refused it first, and was lengthened to 40 characters.
-    `bats test/` 81 of 81; `shellcheck`, `shfmt` and `typos` clean.
-  - Not changed: the bundle path is still the default one, not `current` from
-    `prefs.json`. A Mac syncing its Alfred preferences through Dropbox or
-    iCloud keeps them elsewhere and the step reports no bundle; that needs
-    its own change if the owner ever syncs.
-  - The owner had to set the hotkey by hand in Alfred after running the tab.
-  - Likely cause, from file timestamps: the tab wrote the web search prefs at
-    23:51:04 on 2026-11-15, but
-    `preferences/local/a893a2b86f5f53d443d65a4acf51e39fe0ffa663/` was created
-    at 00:15:58, together with its `hotkey/prefs.plist` -- the manual change.
-    Alfred does not create the machine-local directory on first launch, only
-    when a local preference is first changed. `local_prefs_dir` found nothing
-    and `set_hotkey` took its "launch Alfred once" branch, even though Alfred
-    had been launched.
-  - The hash is available without the directory: `prefs.json` in
-    `~/Library/Application Support/Alfred/` carries `localhash`. Create the
-    directory from that rather than requiring it to exist.
-  - Second cause: Spotlight was disabled at 00:14:10, after the Alfred tab
-    ran, so cmd+space was still held by Spotlight at the time. **Fixed by
-    the consolidation:** Optimize Settings runs Spotlight before Alfred, and
-    a test fails if that order changes.
-  - Acceptance criteria: on a fresh Alfred install, one run binds cmd+space
-    and the hotkey works without opening Alfred Preferences.
-
-- [ ] Fix reduce motion not applying.
-  - **Status, 2026-11-16: applied by the owner's Optimize Settings run, UI
-    check outstanding.** The run had Full Disk Access for the session, and
-    `com.apple.universalaccess reduceMotion` now reads `1`, with the plist
-    last written at 04:39. AppKit agrees:
-    `NSWorkspace.accessibilityDisplayShouldReduceMotion` returns `true`, while
-    `accessibilityDisplayShouldReduceTransparency`, whose key is absent,
-    returns `false` as the control. The domain's `History` has no
-    reduce motion entry, which fits a `defaults write` rather than a click.
-  - The decision below is made: the owner chose Full Disk Access for the
-    session, and Optimize Settings names reduce motion up front when the grant
-    is missing. No code change was needed.
-  - The control still exists on 27.2.1 at **Accessibility > Display > Reduce
-    motion** (`display.reduceMotion` in the Accessibility settings
-    extension's strings), next to Reduce transparency, which is a different
-    setting.
-  - Do not mark complete until the owner confirms that toggle shows on.
-  - `defaults read com.apple.universalaccess reduceMotion` reports the key does
-    not exist. The plist carries `com.apple.macl`, and the terminal lacks Full
-    Disk Access, so this is the TCC case `AGENTS.md` already describes: the
-    write is refused and the row should already be reported as failed.
-  - Decide between requiring Full Disk Access for this step and reporting it as
-    a manual step. Either way the tab has to say so up front, not only in the
-    failure list.
-  - Without Full Disk Access, which the owner no longer grants, the row is
-    reported as failed and reduce motion is set by hand; it is listed under
-    Set by hand in `README.md`. This Mac already reads `1`.
-  - Acceptance criteria: `reduceMotion` reads `1` and Accessibility > Display >
-    Reduce motion shows on, or the run names it as a manual step with the
-    remedy.
-
-- [ ] Disable everything in Spotlight.
-  - The owner reports that not everything in the Spotlight pane is off.
-    `orderedItems` reads all off, so the remainder is in the macOS 26+ pane
-    sections the tab never wrote -- the new domain keys above suggest results
-    from apps, clipboard history and related content. Keys not yet identified.
-  - **Controls on 27.2.1, from the English strings of
-    `SpotlightPreferenceExtension.appex`, 2026-11-16:** the Search results
-    categories (`orderedItems`, already written), and four toggles nothing
-    writes yet: Results from Clipboard, Show Related Content, Help Apple
-    Improve Search, and content from Apple partners in searches and Look Up.
-    Search Privacy, Hidden File Types, Quick Keys and Delete Search History
-    are lists or actions, not toggles.
-  - The binary is Swift and names none of the four keys as a plain string.
-    Candidates read so far: `com.apple.Spotlight` carries only
-    `PasteboardHistoryVersion`, `PasteboardHistoryNeedsWipe`, empty
-    `DisabledUTTypes` and `EnabledPreferenceRules`, and `ModelName = Canned`;
-    `com.apple.spotlight.settings` and `com.apple.lookup.shared` do not exist.
-    The pane's own containers under `~/Library/Containers/` are refused
-    without Full Disk Access, so the keys may live there.
-  - **Diff result, 2026-11-16.** Read-only XML snapshots of every plist in
-    `~/Library/Preferences` and `ByHost`, before and after the owner turned
-    off Show Related Content, Help Apple Improve Search, results from system
-    items and Results from Clipboard:
-
-    | Toggle | Key |
-    | --- | --- |
-    | Show Related Content | `com.apple.Spotlight EnabledPreferenceRules` gains `Custom.relatedContents` |
-    | Results from system items | the same array gains `System.applications`, `System.files`, `System.folders`, `System.iphoneApps`, `System.menuItems` |
-    | Help Apple Improve Search | `com.apple.assistant.support "Search Queries Data Sharing Status"`, created as integer `2` |
-    | Results from Clipboard | **nothing readable changed** |
-
-    A listed rule hides its results despite the key's name, which is why all
-    21 `orderedItems` categories read off while system items still showed.
-    Every other changed file held only timestamps or counters.
-  - **Built, 2026-11-16:** `hide_spotlight_rules` adds each missing rule with
-    `-array-add`, never rewriting the array, and reads each back through
-    `verify_value`; the data sharing key is a manifest row.
-    `test/spotlight.bats`, five tests against a stubbed `defaults`, each
-    guard mutation-checked. Live, against the owner's already-set domain:
-    all six rules verified and the array left byte-identical. `bats test/`
-    86 of 86.
-  - Not proven: that rules written by `defaults` take effect on a Mac where
-    the pane never wrote them. Check on the next fresh install, or by
-    clearing the array and rerunning.
-  - Results from Clipboard changed no readable file, so it needs Full Disk
-    Access; by the owner's decision of 2026-11-17 it is set by hand, under
-    Set by hand in `README.md`. The owner already turned it off.
-  - **Files subcategories, 2026-11-17:** the run turned Files off, but its
-    nine subcategories stayed on. The owner unticked them by hand, which
-    added `Domain.SOURCE` (Developer), `System.documents`,
-    `Domain.IMAGES`, `Domain.MOVIES`, `Domain.MUSIC`, `Domain.MENU_OTHER`
-    (Others), `Domain.PDF`, `Domain.PRESENTATIONS` and
-    `Domain.SPREADSHEETS` to `EnabledPreferenceRules`, and 83 file types to
-    `DisabledUTTypes`, empty until then. Both lists are now added by
-    `ensure_listed`; live, the step changed nothing and left the file
-    byte-identical. `bats test/` 119 of 119.
-  - **Open: content from Apple partners.** The owner did not mention it;
-    confirm whether the pane shows it on 27.2.1 and whether it is off.
-  - Acceptance criteria: every toggle in the Spotlight pane reads back off.
-
 - [ ] Disable all Siri suggestions.
   - Candidate domains on this machine: `com.apple.suggestions`,
     `com.apple.siri.sirisuggestions`, `com.apple.assistant.support`
@@ -296,188 +158,10 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Acceptance criteria: Siri > Suggestions and per-app suggestion toggles all
     read off.
 
-- [ ] Disable Apple Intelligence and other AI features, and remove what can be
-  removed.
-  - Owner, 2026-11-16: disable everything; removing is better wherever it is
-    possible.
-  - Present on this machine: `/System/Applications/Image Playground.app`,
-    `Siri AI.app` and `Siri.app`, plus domains `com.apple.generativesearch`,
-    `com.apple.GenerativeFunctions.agentstored`,
-    `com.apple.GenerativeModels.AgentSessionKit`,
-    `com.apple.generativepartnerservicesettings` and
-    `com.apple.AppleIntelligenceReport`.
-  - **The system apps cannot be removed.** They live on the sealed system
-    volume, and removing them means disabling SIP, which contradicts the
-    security goal. The deliverable is disable, not remove, for anything under
-    `/System`.
-  - **Origin confirmed, 2026-11-16:** `Microsoft 365 Copilot Shim.app` is
-    signed by Microsoft (Team ID `UBF8T346G9`) and installed by the Office
-    package as its own receipt, `com.microsoft.m365copilot.shim` 0.2607.0601,
-    next to the Word, Excel and PowerPoint receipts. Nothing else depends on
-    it.
-  - **Built, 2026-11-16:** `core/settings/ai.sh` runs as "Apple Intelligence"
-    after Siri suggestions. It owns the `CloudSubscriptionFeatures.optIn
-    545129924` row, moved from Cleanup, and removes the shim with `sudo rm`
-    of its exact path, forgetting the receipt only once the app is confirmed
-    gone. `test/ai.bats`, three tests, each guard mutation-checked; `bats
-    test/` 91 of 91. Not run live: it needs the owner's sudo session.
-  - Already off, read-only: `545129924` reads `0`, `Assistant Enabled` reads
-    `0`, and the ChatGPT extension reports `isEnabled = 0` in
-    `com.apple.generativepartnerservicesettings`. The pane's AI controls on
-    27.2.1 are the Apple Intelligence switch and an Extensions group holding
-    ChatGPT.
-  - Open: the Office installer adds the shim again on reinstall, and the
-    full-suite path passes no choices file. The core path already deselects
-    `com.microsoft.defender.shim`; the shim's choice identifier needs
-    `installer -showChoicesXML` on the downloaded package before it is added.
-    Whether Microsoft AutoUpdate restores it is unknown.
-  - Model downloads: `/System/Library/AssetsV2` holds 4.2 GB, but the
-    `UAF_FM_*` generative model folders are TCC-refused, so they cannot be
-    sized here. MobileAsset manages them; deleting them by hand is not safe
-    and they would return. Turning Apple Intelligence off is what releases
-    them.
-  - Also in scope: ChatGPT and other partner extensions, writing tools, and
-    the on-device model downloads, which turning Apple Intelligence off should
-    release. Keys not yet identified.
-  - Acceptance criteria: Apple Intelligence & Siri shows everything off, and no
-    third-party AI app remains in `/Applications`.
-
-- [ ] Turn off four Battery options.
-  - Scope from the owner, 2026-11-16, and nothing else in the pane:
-
-    | Battery > Options row | Off is | Mapped by toggle-and-diff, 2026-11-17 |
-    | --- | --- | --- |
-    | Slightly dim the display on battery | `pmset -b lessbright 0` | on wrote `lessbright 1` on battery |
-    | Prevent automatic sleeping on power adapter when the display is off | `pmset -c sleep 1` | on wrote AC `sleep 0`; off wrote back exactly `1` |
-    | Wake for network access | `womp 0` | already set by `security.sh` |
-    | Optimize video streaming while on battery | `/Library/Preferences/.GlobalPreferences com.apple.coremedia.optimizeVideoStreamingOnBattery` false | not `pmset`; off writes `false` rather than deleting the key |
-
-  - **Built, 2026-11-17:** `core/settings/battery.sh` runs as "Battery" after
-    Security. Each `pmset` row is read back from its own section of
-    `pmset -g custom`, because `pmset -g` shows only the source in use; the
-    video row goes through `apply_settings`. `test/battery.bats`, four tests,
-    six mutations killed; `bats test/` 95 of 95. Not run live: it needs the
-    owner's sudo session. All three rows already read off after the owner's
-    toggle back.
-  - The AC row forces `sleep 1`, the value the pane writes, so a custom
-    system sleep timer on AC would be reset to 1.
-  - Acceptance criteria: all four rows show off or Never in Battery > Options,
-    and each mapped `pmset` key reads back as specified.
-
-- [ ] Disable every app in Menu Bar > Allow in the menu bar, every system
-  control, and suggestions in the Control Gallery.
-  - Owner, 2026-11-17: also turn off Show suggestions in Control Gallery.
-  - The 13 KB `ControlCenterDisplayableChronoControlsProviderConfiguration`
-    blob is a catalog of the Control Center controls, not a setting.
-  - **Mapped by the owner setting the pane by hand and diffing, 2026-11-17:**
-
-    | Change | Key |
-    | --- | --- |
-    | Control Gallery suggestions off | `-currentHost com.apple.controlcenter ShowSuggestions` false |
-    | Battery, Display, FocusModes, NowPlaying, ScreenMirroring, Sound, Spotlight, Timer, WiFi set to Don't Show | `-currentHost com.apple.controlcenter <module>` int 8; absent before |
-    | Spotlight icon | also `-currentHost com.apple.Spotlight MenuItemHidden` true |
-    | Input menu | `com.apple.TextInputMenu visible` false and `com.apple.TextInputMenuAgent "NSStatusItem VisibleCC Item-0"` false |
-    | Siri AI item (`Siri AI.app`, `com.apple.campo`) | `"NSStatusItem VisibleCC Item-0"` deleted, not set false |
-
-  - **Fixed, 2026-11-17:** the first run left the Bluetooth icon showing,
-    because the owner's Bluetooth decision was wrongly read as covering the
-    icon; it covers the radio only. Hiding it by hand wrote
-    `-currentHost com.apple.controlcenter Bluetooth` int 8, now a row.
-  - **Every item, 2026-11-17:** the owner turned every menu bar item on, then
-    off, and diffed. Each Control Center item reads 2 when shown and 8 when
-    not; AirDrop, KeyboardBrightness, TimeMachine and UserSwitcher were
-    absent until first shown, so the step never wrote them. Time Machine
-    also adds `com.apple.systemuiserver "NSStatusItem VisibleCC
-    com.apple.menuextra.TimeMachine"` and a `TimeMachine.menu` entry in
-    `menuExtras`; hiding it deletes the key and drops the entry. Every item
-    but Weather is a row now, and the Time Machine extra is removed with any
-    other extra kept, then `SystemUIServer` restarted. `bats test/` 122 of
-    122.
-  - **Weather, dropped 2026-11-17:** a new macOS install leaves Weather out
-    of the menu bar, so by the owner's decision the step does not touch it.
-    The setting alone does not hide it either: the Weather app's own launchd
-    agent, `com.apple.weather.menu`, draws the icon.
-  - **Built, 2026-11-17:** `core/settings/menu-bar.sh` runs as "Menu bar"
-    after Dock and Desktop. Rows restart `ControlCenter` and
-    `TextInputMenuAgent`; the Siri AI key is deleted, checked gone, and only
-    then is `Siri AI` restarted, which its launch agent relaunches.
-    `test/menu-bar.bats`, five tests, eight mutations killed; `bats test/`
-    100 of 100. Every row already reads as written on this Mac. Not proven:
-    that Control Center honours rows written while it runs on a fresh Mac.
-  - Allow in the Menu Bar, the third-party app list, changed no readable
-    file; it sits in `group.com.apple.controlcenter` or
-    `group.com.apple.secure-control-center-preferences`, both TCC-refused. By
-    the owner's decision of 2026-11-17 it is set by hand, under Set by hand in
-    `README.md`.
-  - Acceptance criteria: every system control reads Don't Show, and none
-    appears in the menu bar after a logout.
-
-- [ ] Set the wallpaper to solid black.
-  - macOS ships a black solid colour under Wallpaper > Colors. Mechanism not
-    chosen: AppleScript through System Events needs an Automation grant, and
-    `desktoppr` would be a new dependency.
-  - Already black on this Mac, set by hand 2026-11-15. The choice lives in
-    `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist`, not
-    a preference domain: `AllSpacesAndDisplays` and `SystemDefault` each hold
-    one `com.apple.wallpaper.choice.color` choice whose `Configuration`
-    decodes to `{type = systemColor; systemColor = {black = {}}}`, and
-    `Displays` and `Spaces` are empty. System Events reads `missing value`
-    for it.
-  - **Built, 2026-11-17:** `core/settings/wallpaper.sh` runs as "Wallpaper"
-    after Menu bar. It writes that store whole, to a temp file beside it,
-    converted to binary and moved into place, then restarts `WallpaperAgent`,
-    which launchd relaunches. A store already black with no display or Space
-    override is left untouched. With the pane's date, the generated store is
-    identical to this Mac's. `test/wallpaper.bats`, seven tests, ten
-    mutations killed; `bats test/` 107 of 107.
-  - Not proven: that `WallpaperAgent` takes the store on restart rather than
-    writing its own state back. Owner check: pick another wallpaper, run
-    Optimize Settings, and see black on every display and Space.
-  - Acceptance criteria: every display and every Space shows black, and it
-    survives a logout.
-
-- [ ] Harden and tune the rest of the system for performance and security.
-  - Observed: FileVault is off, firewall stealth mode is off, SIP is on,
-    Gatekeeper assessments are on.
-  - **FileVault is out of scope.** The owner turns it on by hand, 2026-11-16.
-  - Turn stealth mode on: `sudo socketfilterfw --setstealthmode on` in
-    `security.sh`, read back with `--getstealthmode` through `verify_value`.
-    Check the exact output string on 27.2.1 before choosing the `contains`
-    text; today it prints `Firewall stealth mode is off`.
-  - **Built, 2026-11-17:** `enable_stealth_mode` in `security.sh`, run right
-    after `enable_firewall`. `socketfilterfw` formats the answer as `Firewall
-    stealth mode is %s`, so the read-back is `exact` on `Firewall stealth mode
-    is on`, which an off state cannot pass. `test/security.bats`, four tests,
-    six mutations killed; `bats test/` 111 of 111. Not run live: it needs the
-    owner's sudo session.
-  - Read-only, 2026-11-17, already as they should be: Gatekeeper
-    assessments on, SIP on, guest account off, no automatic login, crash
-    report auto-submit `0`, Remote Login, Screen Sharing and File Sharing not
-    loaded, firewall block-all off.
-  - Owner, 2026-11-17: do the screen lock and AirPlay Receiver. Automatically
-    allow downloaded signed software was explained and not chosen; it stays
-    enabled.
-  - **Built, 2026-11-17:** `require_password_immediately` in `security.sh`,
-    after stealth mode. `sysadminctl -screenLock immediate -password -` asks
-    for the login password on the terminal, not sudo, and only when
-    `-screenLock status` does not already print `screenLock delay is
-    immediate`; that sentence, from the binary's own format strings, is the
-    read-back. Three tests, six mutations killed; `bats test/` 114 of 114.
-    Not run live: it needs the owner's login password.
-  - **Built, 2026-11-17:** `disable_airplay_receiver` in `security.sh`, after
-    the screen lock. Diffed when the owner turned it off:
-    `-currentHost com.apple.controlcenter AirplayReceiverEnabled` false,
-    spelled correctly; the misspelled key older guides cite does not exist on
-    27.2.1. Restarts `ControlCenter`. One test, five
-    mutations killed; `bats test/` 115 of 115. Already reads `0` here.
-  - Owner check on the next run: stealth mode on in Network > Firewall >
-    Options, the login password asked once and Lock Screen showing
-    Immediately, and AirPlay Receiver still off.
-  - Acceptance criteria: stealth mode reads on and shows on in Network >
-    Firewall > Options; any further hardening or performance setting is agreed
-    first and read back.
-
 - [ ] Take the sudo password before installing Homebrew.
+  - **Known gap, owner, 2026-11-17:** the owner runs this separately on a
+    Mac without Homebrew; until then it is unproven that the menu's sudo
+    prompt at startup carries through to the installer.
   - **Status: fixed 2026-11-16, not yet validated on a Mac without
     Homebrew.** `checkPackageManager` now calls `sudo_keepalive` before the
     installer and exits 1 without running it when sudo is refused. Do not
@@ -547,6 +231,34 @@ where it generalises.
   AutoFill and Passwords.~~ Each is stored only where Full Disk Access is
   needed, which the owner does not grant, so they moved to Set by hand in
   `README.md`, 2026-11-17. The readable Finder tag keys stay in `fix-finder.sh`.
+- [x] Fix the Alfred cmd+space hotkey not applying. The step writes this
+  Mac's `local/<id>/hotkey/prefs.plist`; it reads cmd+space after a restart
+  and the owner confirmed it works, 2026-11-17.
+- [x] Fix reduce motion not applying. `reduceMotion` reads 1 after a restart;
+  on a Mac without Full Disk Access it is under Set by hand in `README.md`,
+  2026-11-17.
+- [x] Disable everything in Spotlight. 15 hidden categories, the Files
+  subcategories and 83 file types read back after a restart; the pane on
+  27.2.1 has no "content from Apple partners" toggle, and Results from
+  Clipboard is under Set by hand, 2026-11-17.
+- [x] Disable Apple Intelligence and AI features. Everything reads off, no
+  third-party AI app is in `/Applications`, and the Copilot shim is gone.
+  The system apps are on the sealed volume and are disabled, not removed.
+  Not proven: whether Microsoft AutoUpdate restores the Office shim, whose
+  choice id still needs `installer -showChoicesXML`, 2026-11-17.
+- [x] Turn off four Battery options. `pmset -b lessbright 0`, `pmset -c sleep
+  1` and the video streaming key read back after a restart; owner checked the
+  pane, 2026-11-17.
+- [x] Hide every system menu bar item. All Control Center items, Spotlight,
+  the input menu, Siri AI and the Time Machine extra stay hidden after a
+  restart. Weather is left alone: a new install keeps it out of the menu bar,
+  and its icon comes from its own launchd agent. Third-party apps are under
+  Set by hand, 2026-11-17.
+- [x] Set the wallpaper to solid black. It reads black on the display and
+  every Space after a restart, 2026-11-17.
+- [x] Harden the rest of the system. Firewall and stealth mode on, password
+  required immediately, AirPlay Receiver and wake for network access off, all
+  read back after a restart, 2026-11-17.
 
 ### Menu and installer
 
