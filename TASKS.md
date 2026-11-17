@@ -119,48 +119,6 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   a session, because the owner judges it a risk. A setting that needs it is
   set by hand and listed under Set by hand in `README.md`.
 
-- [ ] Re-baseline every settings tab in `core/tabs/system/` against macOS 27.
-  - `SPEC.md:108` still targets macOS 15 (Sequoia) and the appendix records
-    15.7.9 keys. Both need updating to 27.2.1 once each key is re-verified.
-  - Observed already on 27.2.1:
-
-    | Tab | Observation |
-    | --- | --- |
-    | `remove-animations.sh` | `reduceMotion` is **absent** from `com.apple.universalaccess`; see the reduce motion task |
-    | `spotlight.sh` | `orderedItems` still reads all 21 categories `enabled = 0`, but the domain now also carries `DisabledUTTypes`, `EnabledPreferenceRules` and `PasteboardHistory*` keys the tab does not touch |
-    | `spotlight.sh` | hotkeys `64` and `65` read `enabled = false` with the expected parameters |
-    | `system-cleanup.sh` | `com.apple.CloudSubscriptionFeatures.optIn 545129924` still exists and reads `0` |
-    | `security.sh` | `womp` reads `0` on both battery and AC |
-    | `alfred.sh` | the machine-local hotkey directory did not exist when the tab ran; see the Alfred task |
-
-  - **Read-only audit of every manifest row, 2026-11-16: 56 of 58 read back
-    as specified.** Every row in `desktop-dock.sh`, `fix-finder.sh`,
-    `input.sh` and `system-cleanup.sh` holds, and so does every animation row
-    except one. The two failures:
-
-    | Row | Read back |
-    | --- | --- |
-    | `com.apple.universalaccess reduceMotion` | key absent (TCC; see the reduce motion task) |
-    | `/Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled` | key absent, while the other five Software Update keys and `com.apple.commerce AutoUpdate` read correctly |
-
-    `AutomaticCheckEnabled` is the key the appendix recorded as absent and
-    needing creation. Either the row never took or `softwareupdated` removed
-    it on 27; find out which before writing it again.
-  - Also read back: the firewall reports `State = 1`, and the Dock holds only
-    System Settings.
-  - A row that reads back is not the same as the UI agreeing. The Finder
-    complaints below are about settings no manifest row covers.
-  - `display.sh` is confirmed fine by the owner, 2026-11-16, and needs no work.
-  - Still to check: the Spotlight and Alfred structural checks against the UI,
-    and the sidebar file. Neither
-    `com.apple.LSSharedFileList.FavoriteItems.sfl3` nor `.sfl4` exists by name
-    on 27.2.1; `stat` on a known path worked through TCC on 15, so the file
-    has been renamed or moved.
-  - ~~`AGENTS.md` cites `core/main.sh:49` and `:53` for the menu discovery
-    rule.~~ Updated to `core/main.sh:269` and `:273` with the consolidation.
-  - Acceptance criteria: every manifest row and structural check reads back on
-    27.2.1, and the appendix and `SPEC.md` name 27.2.1 as the verified version.
-
 - [ ] Fix the Alfred cmd+space hotkey not applying.
   - **Status: fixed 2026-11-16, awaiting the owner's live check.** Do not mark
     this complete until a run with this Mac's local folder moved aside binds
@@ -622,6 +580,9 @@ where it generalises.
   owner's toggle showed `-currentHost com.apple.universalcontrol Disable` and
   `DisableMagicEdges`, both true; `display.sh` writes them before More Space
   and read them back live, 2026-11-17.
+- [x] Re-baseline the settings against macOS 27. All 75 manifest rows and the
+  structural checks read back on 27.2.1, and `SPEC.md` and the appendix name
+  it as the verified version, 2026-11-17.
 - [x] ~~Disable Tips, set the Finder sidebar and tags, turn off General >
   AutoFill and Passwords.~~ Each is stored only where Full Disk Access is
   needed, which the owner does not grant, so they moved to Set by hand in
@@ -746,7 +707,9 @@ marking unverified work done.
 
 ## Appendix: preference keys verified on this machine
 
-Read directly from macOS 15.7.9 (24G830), arm64, on 2026-09-13. These are
+Read directly from macOS 15.7.9 (24G830), arm64, on 2026-09-13, and read back
+again on macOS 27.2.1 (26B131) on 2026-11-17: all 75 manifest rows in
+`core/settings/` and every structural check below hold on 27.2.1. These are
 observed values, not recalled ones. Keys marked *unset* are absent from the
 current preferences and need the documented value written explicitly.
 
@@ -820,7 +783,7 @@ Upgrade risk: this is the path-based `defaults` form, which Apple has warned
 will be retired when `defaults` moves to domains only. It is the most
 upgrade-fragile part of the plan. Verify after every macOS major update.
 
-| Automatic Updates row | Key | Value | Observed |
+| Automatic Updates row | Key | Value | Observed on 15.7.9 |
 | --- | --- | --- | --- |
 | Check for updates | `AutomaticCheckEnabled` | `false` | **absent** -- must be created |
 | Download new updates when available | `AutomaticDownload` | `false` | already `0` |
@@ -828,6 +791,12 @@ upgrade-fragile part of the plan. Verify after every macOS major update.
 | Install application updates from the App Store | `com.apple.commerce AutoUpdate` | `false` | **domain does not exist** -- must be created |
 | Install Security Responses and system files | `CriticalUpdateInstall` | `true` | already `1` |
 | (same row, second key) | `ConfigDataInstall` | `true` | already `1` |
+
+On 27.2.1 every key reads as specified, `AutomaticCheckEnabled` included. The
+pane no longer has a check toggle, only a Check for Updates button, and
+`softwareupdate --schedule` still reports automatic checking on, so that key
+no longer maps to anything visible. The security row is renamed Install system
+data files and security updates.
 
 The last row of the UI is backed by two keys. Setting only one leaves the
 checkbox in a mixed state that reads as enabled while half the behavior is off.
@@ -838,3 +807,23 @@ checkbox in a mixed state that reads as enabled while half the behavior is off.
 search) and `65` (show Finder search window), each `enabled = false` while
 preserving the `value` dictionary of `{type: standard, parameters: [...]}`.
 Followed by `activateSettings -u`.
+
+### Added on macOS 27.2.1
+
+Each found by the owner changing the pane and diffing, 2026-11-16 to 11-17.
+
+| Setting | Key | Value |
+| --- | --- | --- |
+| Spotlight: related content and system items hidden | `com.apple.Spotlight EnabledPreferenceRules` | lists the six rules in `spotlight.sh` |
+| Help Apple Improve Search, off | `com.apple.assistant.support "Search Queries Data Sharing Status"` | `2` |
+| Siri suggestions, off per app | `com.apple.suggestions AppCanShowSiriSuggestionsBlacklist` | the eleven bundle ids in `siri.sh` |
+| Apple Intelligence, off | `com.apple.CloudSubscriptionFeatures.optIn 545129924` | `false` |
+| Slightly dim the display on battery, off | `pmset -b lessbright` | `0` |
+| Prevent sleeping on power adapter when the display is off, off | `pmset -c sleep` | `1` |
+| Optimize video streaming on battery, off | `/Library/Preferences/.GlobalPreferences com.apple.coremedia.optimizeVideoStreamingOnBattery` | `false` |
+| Menu bar system controls, Don't Show | `-currentHost com.apple.controlcenter <module>` | `8` |
+| Control Gallery suggestions, off | `-currentHost com.apple.controlcenter ShowSuggestions` | `false` |
+| AirPlay Receiver, off | `-currentHost com.apple.controlcenter AirplayReceiverEnabled` | `false` |
+| Universal Control, off | `-currentHost com.apple.universalcontrol Disable` and `DisableMagicEdges` | `true` |
+| Password after screen lock, immediately | `sysadminctl -screenLock` | `immediate` |
+| Wallpaper, solid black | `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist` | a `systemColor` `black` choice |
