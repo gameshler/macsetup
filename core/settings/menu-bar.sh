@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Menu bar: hide every system control, the input menu, Time Machine's menu
-# extra, the Weather agent and the Siri AI item, and turn off suggestions in
-# the Control Gallery. The Bluetooth icon is hidden too; only the Bluetooth
-# radio is left to the owner.
+# extra and the Siri AI item, and turn off suggestions in the Control Gallery.
+# The Bluetooth icon is hidden too; only the Bluetooth radio is left to the
+# owner.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 # Siri AI.app owns com.apple.campo. Hiding its item in the pane deletes this
@@ -67,21 +67,6 @@ hide_time_machine_extra() {
     killall SystemUIServer >/dev/null 2>&1 || true
 }
 
-# The Weather icon is drawn by the Weather app's own agent, registered with
-# launchd. Hiding it in the pane writes Weather = 8 and also removes this job;
-# the setting alone leaves the icon up. Showing it again re-registers the job.
-WEATHER_MENU_AGENT="com.apple.weather.menu"
-
-remove_weather_menu_agent() {
-    local job state="removed"
-
-    job="gui/$(id -u)/$WEATHER_MENU_AGENT"
-    launchctl print "$job" >/dev/null 2>&1 || return 0
-    launchctl bootout "$job" >/dev/null 2>&1 || true
-    launchctl print "$job" >/dev/null 2>&1 && state="loaded"
-    verify_value "launchctl $job" "removed" "$state" exact || true
-}
-
 menu_bar() {
     printf "%b\n" "Hiding the menu bar controls..."
 
@@ -111,5 +96,4 @@ EOF
 
     hide_siri_ai_item
     hide_time_machine_extra
-    remove_weather_menu_agent
 }

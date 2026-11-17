@@ -43,20 +43,6 @@ setup() {
         esac
     }
     killall() { echo "KILLALL $*" >>"$CALL_LOG"; }
-
-    # The Weather agent's launchd job is a file; bootout removes it unless
-    # BOOTOUT_STICKS=0.
-    WEATHER_JOB="$BATS_TEST_TMPDIR/weather-job"
-    BOOTOUT_STICKS=1
-    launchctl() {
-        echo "LAUNCHCTL $*" >>"$CALL_LOG"
-        [ "$2" = "gui/$(id -u)/com.apple.weather.menu" ] || return 1
-        case "$1" in
-        print) [ -e "$WEATHER_JOB" ] ;;
-        bootout) [ "$BOOTOUT_STICKS" = "0" ] || command rm "$WEATHER_JOB" ;;
-        *) return 1 ;;
-        esac
-    }
 }
 
 stored() {
@@ -142,33 +128,4 @@ stored() {
     [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
     printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "com.apple.campo"
     [ "$(grep -cF "Siri AI" "$CALL_LOG")" -eq 0 ]
-}
-
-# The pane's Weather switch also removes the Weather app's menu agent job;
-# the setting alone leaves the icon up.
-@test "removes the Weather menu agent's launchd job, as the pane does" {
-    : >"$WEATHER_JOB"
-
-    menu_bar
-
-    [ ! -e "$WEATHER_JOB" ]
-    grep -qx "LAUNCHCTL bootout gui/$(id -u)/com.apple.weather.menu" "$CALL_LOG"
-    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
-}
-
-@test "with no Weather menu agent loaded, boots nothing out" {
-    menu_bar
-
-    [ "$(grep -c "LAUNCHCTL bootout" "$CALL_LOG")" -eq 0 ]
-    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
-}
-
-@test "a Weather menu agent that will not go away is reported by name" {
-    : >"$WEATHER_JOB"
-    BOOTOUT_STICKS=0
-
-    menu_bar
-
-    [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
-    printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "com.apple.weather.menu"
 }
