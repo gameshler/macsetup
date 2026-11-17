@@ -480,62 +480,6 @@ No open tasks.
 
 ## Blocked on a decision
 
-- [ ] Browser extensions: Privacy Badger, Decentraleyes, uBlock Origin.
-  - Blocker is still "which browser", but it is now a sharp tradeoff rather than
-    an open question. Investigated 2026-09-17.
-  - **Correction: the repo offers four browsers, the machine has three of them.**
-    `core/tabs/apps/browsers/` holds `brave.sh`, `chrome.sh`, `firefox.sh` and
-    `thorium.sh` (cask `alex313031-thorium`). Thorium is **not installed** here,
-    so the machine has Brave, Firefox and Chrome from this repo, plus the
-    preinstalled Safari. The earlier phrase "the four installed browsers"
-    conflated offered with installed.
-  - **The machine says Chrome, unambiguously:**
-
-    | Evidence | Result |
-    | --- | --- |
-    | default `https` handler | `com.google.chrome` |
-    | default `http` handler | `com.google.chrome` |
-    | Chrome profile | exists, last modified Sep 16 2026 |
-    | Brave profile | **no profile directory -- never launched** |
-    | Firefox profile | **no profile directory -- never launched** |
-
-    Brave and Firefox have no `Application Support` profile at all, which is what
-    a browser that has never been opened once looks like. This lines up with the
-    separate open question about the eight casks installed by mistake, which
-    includes both of them.
-  - **And Chrome is the worst browser for this particular extension set.** Two of
-    the three requested extensions are degraded or obsolete there:
-
-    | Extension | On Chrome | On Firefox / Brave |
-    | --- | --- | --- |
-    | uBlock Origin | **gone.** Removed from the Web Store in late 2024; MV2 disabled July 2025; Chrome 151 removed the last MV2 code paths July 2026. Only uBlock Origin **Lite** remains, capped at 30k static / 5k dynamic rules | full version works |
-    | Privacy Badger | available and maintained, heuristic rather than list-based, so MV3 hurts it least | available |
-    | Decentraleyes | listed (v3.0.2, Aug 2026) but its effectiveness under MV3 is disputed -- the blocking `webRequest` path it relied on is deprecated. Modern browsers also partition the HTTP cache by top-level domain, which natively covers the tracking vector it was built for | available |
-
-    So the choice is: the browser actually in use (Chrome), accepting uBlock
-    Origin Lite and a probably-inert Decentraleyes; or a browser never yet opened
-    (Brave/Firefox), getting the full set.
-  - Note for Brave: its mechanism is not the Chrome Web Store at all. Brave hosts
-    four MV2 extensions (uBlock Origin, AdGuard, NoScript, uMatrix) on its own
-    infrastructure, installable from Brave's own extensions settings page, and
-    calls this best-effort rather than permanent. An `ExtensionInstallForcelist`
-    pointing at Web Store IDs would not be how uBlock Origin gets there.
-  - **Second blocker, new: this Mac is unmanaged, and these are enterprise
-    policies.** `/Library/Managed Preferences/` does not exist, and
-    `profiles list -type configuration` reports no configuration profiles for
-    this user. `ExtensionSettings` / `ExtensionInstallForcelist` are policies
-    whose macOS format is confirmed as a plist under the `com.google.Chrome`
-    domain (checked against Chrome Enterprise policy docs, 2026-09-17).
-    **Not verified: whether a plain user-domain `defaults write
-    com.google.Chrome ...` is honored as a mandatory policy on an unmanaged Mac,
-    or whether it needs a root-owned file under `/Library/Managed Preferences`
-    or a configuration profile.** Proving it means launching Chrome and reading
-    `chrome://policy`, which force-installs extensions into the daily browser, so
-    it was not done unasked. If it needs the managed path, this becomes a
-    `sudo`-scoped tab and inherits the same prerequisite as `security.sh`.
-  - To unblock, in order: name the browser, then settle whether the policy has to
-    be system-scoped.
-
 - [ ] Confirm whether a `gitconfig` CLI is wanted in addition to `gitignore`.
   - Resolved for now as `gitignore` only. Checked against the npm registry on
     2026-09-13:
@@ -583,6 +527,8 @@ where it generalises.
 - [x] Re-baseline the settings against macOS 27. All 75 manifest rows and the
   structural checks read back on 27.2.1, and `SPEC.md` and the appendix name
   it as the verified version, 2026-11-17.
+- [x] ~~Browser extensions: Privacy Badger, Decentraleyes, uBlock Origin.~~
+  Withdrawn at the owner's request, 2026-11-17: installed by hand.
 - [x] ~~Disable Tips, set the Finder sidebar and tags, turn off General >
   AutoFill and Passwords.~~ Each is stored only where Full Disk Access is
   needed, which the owner does not grant, so they moved to Set by hand in
