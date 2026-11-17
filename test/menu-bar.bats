@@ -53,7 +53,7 @@ stored() {
     local control
     menu_bar
 
-    for control in AirDrop Battery Bluetooth Display FocusModes KeyboardBrightness NowPlaying ScreenMirroring Sound Spotlight TimeMachine Timer UserSwitcher Weather WiFi; do
+    for control in AirDrop Battery Bluetooth Display FocusModes KeyboardBrightness NowPlaying ScreenMirroring Sound Spotlight TimeMachine Timer UserSwitcher WiFi; do
         [ "$(stored "byhost com.apple.controlcenter $control")" = "8" ]
     done
     [ "$(stored "byhost com.apple.controlcenter ShowSuggestions")" = "false" ]

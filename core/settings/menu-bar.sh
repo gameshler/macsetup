@@ -87,7 +87,6 @@ menu_bar() {
 -currentHost com.apple.controlcenter | TimeMachine                   | int  | 8     | ControlCenter
 -currentHost com.apple.controlcenter | Timer                         | int  | 8     | ControlCenter
 -currentHost com.apple.controlcenter | UserSwitcher                  | int  | 8     | ControlCenter
--currentHost com.apple.controlcenter | Weather                       | int  | 8     | ControlCenter
 -currentHost com.apple.controlcenter | WiFi                          | int  | 8     | ControlCenter
 -currentHost com.apple.Spotlight     | MenuItemHidden                | bool | true  | ControlCenter
 com.apple.TextInputMenu              | visible                       | bool | false | TextInputMenuAgent
