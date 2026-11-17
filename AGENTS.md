@@ -481,6 +481,12 @@ assertions are worth here.
 Tests live in `test/*.bats`. `bats test/` runs the top level of a directory
 only; there is no nesting, so `-r` is not needed.
 
+Never leave `[[ ]]` or a `!`-negated command anywhere but a test's last line
+without `|| false`. `bats` runs under `/bin/bash` 3.2, where neither trips
+`set -e`, so the assertion passes whatever it compares: 30 of the 43 in
+`test/settings-lib.bats` could not fail until each gained `|| false`. Prefer
+`[ ]`, `grep -q`, or a `grep -c ... -eq 0` count for a negative check.
+
 `core/tabs/common-script.sh` declares `#!/usr/bin/env bash` and is linted. Do
 not change it back to `#!/bin/zsh`: shellcheck refuses to analyze a zsh shebang
 (`SC1071`), which would leave the most widely sourced file in the repository
