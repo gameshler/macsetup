@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Security: firewall and stealth mode on, automatic updates off.
+# Security: firewall and stealth mode on, the password required as soon as
+# the screen locks, automatic updates off.
 # Sourced by core/tabs/system/optimize-settings.sh, which runs it.
 
 FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
@@ -27,6 +28,27 @@ enable_stealth_mode() {
 
     state="$("$FIREWALL" --getstealthmode 2>/dev/null)"
     verify_value "socketfilterfw --getstealthmode" "Firewall stealth mode is on" "$state" exact || true
+}
+
+screen_lock_state() {
+    sysadminctl -screenLock status </dev/null 2>&1
+}
+
+# Lock Screen > Require password after screen saver begins or display is
+# turned off. sysadminctl needs the login password, not sudo, and with "-"
+# asks for it on the terminal; it is only asked when the delay is not
+# already immediate.
+require_password_immediately() {
+    printf "%b\n" "Requiring the password as soon as the screen locks..."
+
+    case "$(screen_lock_state)" in
+    *"screenLock delay is immediate"*) return 0 ;;
+    esac
+
+    printf "%b\n" "sysadminctl asks for your login password here."
+    sysadminctl -screenLock immediate -password - || true
+
+    verify_value "sysadminctl -screenLock" "screenLock delay is immediate" "$(screen_lock_state)" contains || true
 }
 
 disable_wake_on_network() {
@@ -60,6 +82,7 @@ security() {
 
     enable_firewall
     enable_stealth_mode
+    require_password_immediately
     disable_wake_on_network
     set_software_update
 

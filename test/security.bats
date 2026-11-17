@@ -29,6 +29,30 @@ EOF
         [ "$SUDO_REFUSES" = "0" ] || return 1
         "$@"
     }
+
+    # The delay is a file; a write logs, and lands only when LOCK_STICKS=1.
+    LOCK="$BATS_TEST_TMPDIR/lock"
+    echo 300 >"$LOCK"
+    LOCK_LOG="$BATS_TEST_TMPDIR/lock.log"
+    : >"$LOCK_LOG"
+    LOCK_STICKS=1
+    sysadminctl() {
+        [ "$1" = "-screenLock" ] || return 1
+        case "$2" in
+        status)
+            if [ "$(cat "$LOCK")" = "immediate" ]; then
+                echo "2026-11-17 sysadminctl[1:2] screenLock delay is immediate" >&2
+            else
+                echo "2026-11-17 sysadminctl[1:2] screenLock delay is $(cat "$LOCK") seconds" >&2
+            fi
+            ;;
+        *)
+            echo "SET $*" >>"$LOCK_LOG"
+            [ "$LOCK_STICKS" = "1" ] && echo "$2" >"$LOCK"
+            ;;
+        esac
+        return 0
+    }
 }
 
 @test "with stealth mode off, turns it on and reports nothing" {
@@ -56,15 +80,42 @@ EOF
     [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
 }
 
-@test "the security area turns stealth mode on after the firewall" {
+@test "the security area turns stealth mode on after the firewall, then the screen lock" {
     local calls="$BATS_TEST_TMPDIR/calls"
     enable_firewall() { echo firewall >>"$calls"; }
     enable_stealth_mode() { echo stealth >>"$calls"; }
+    require_password_immediately() { echo lock >>"$calls"; }
     disable_wake_on_network() { :; }
     set_software_update() { :; }
     sudo_keepalive() { return 0; }
 
     security
 
-    [ "$(tr '\n' ' ' <"$calls")" = "firewall stealth " ]
+    [ "$(tr '\n' ' ' <"$calls")" = "firewall stealth lock " ]
+}
+
+@test "with a five-minute delay, asks for the login password once and requires it immediately" {
+    require_password_immediately
+
+    [ "$(cat "$LOCK")" = "immediate" ]
+    [ "$(cat "$LOCK_LOG")" = "SET -screenLock immediate -password -" ]
+    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
+}
+
+@test "when the password is already required immediately, asks for nothing" {
+    echo immediate >"$LOCK"
+
+    require_password_immediately
+
+    [ ! -s "$LOCK_LOG" ]
+    [ "$SETTINGS_FAILED_COUNT" -eq 0 ]
+}
+
+@test "a refused or wrong login password is reported by name" {
+    LOCK_STICKS=0
+
+    require_password_immediately
+
+    [ "$SETTINGS_FAILED_COUNT" -eq 1 ]
+    printf '%s\n' "$SETTINGS_FAILED_KEYS" | grep -qF "sysadminctl -screenLock"
 }
