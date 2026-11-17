@@ -393,6 +393,15 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     items are rows now, and the Time Machine extra is removed with any other
     extra kept, then `SystemUIServer` restarted. Live: 19 of 19 verified.
     `bats test/` 122 of 122.
+  - **Weather, 2026-11-17:** with Weather at 8 the icon stayed up. It is
+    drawn by the Weather app's agent `com.apple.weather.menu`, a launchd job
+    submitted by ServiceManagement; hiding it in the pane also removes that
+    job, and showing it again re-registers it. Restarting the agent did not
+    hide the icon; `launchctl bootout gui/<uid>/com.apple.weather.menu` did,
+    with the setting still 2. The step now boots the job out and checks it is
+    gone. `bats test/` 125 of 125; six mutations killed. Not proven: whether
+    the background item record, readable only with `sfltool dumpbtm` as
+    admin, brings the agent back at the next login.
   - **Built, 2026-11-17:** `core/settings/menu-bar.sh` runs as "Menu bar"
     after Dock and Desktop. Rows restart `ControlCenter` and
     `TextInputMenuAgent`; the Siri AI key is deleted, checked gone, and only
@@ -778,6 +787,7 @@ Each found by the owner changing the pane and diffing, 2026-11-16 to 11-17.
 | Prevent sleeping on power adapter when the display is off, off | `pmset -c sleep` | `1` |
 | Optimize video streaming on battery, off | `/Library/Preferences/.GlobalPreferences com.apple.coremedia.optimizeVideoStreamingOnBattery` | `false` |
 | Menu bar items, Don't Show | `-currentHost com.apple.controlcenter <item>` for AirDrop, Battery, Bluetooth, Display, FocusModes, KeyboardBrightness, NowPlaying, ScreenMirroring, Sound, Spotlight, TimeMachine, Timer, UserSwitcher, Weather, WiFi | `8`; `2` is shown |
+| Weather menu item, hidden | launchd job `gui/<uid>/com.apple.weather.menu` | removed; showing Weather re-registers it |
 | Control Gallery suggestions, off | `-currentHost com.apple.controlcenter ShowSuggestions` | `false` |
 | AirPlay Receiver, off | `-currentHost com.apple.controlcenter AirplayReceiverEnabled` | `false` |
 | Universal Control, off | `-currentHost com.apple.universalcontrol Disable` and `DisableMagicEdges` | `true` |
