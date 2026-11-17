@@ -244,6 +244,15 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
   - Results from Clipboard changed no readable file, so it needs Full Disk
     Access; by the owner's decision of 2026-11-17 it is set by hand, under
     Set by hand in `README.md`. The owner already turned it off.
+  - **Files subcategories, 2026-11-17:** the run turned Files off, but its
+    nine subcategories stayed on. The owner unticked them by hand, which
+    added `Domain.SOURCE` (Developer), `System.documents`,
+    `Domain.IMAGES`, `Domain.MOVIES`, `Domain.MUSIC`, `Domain.MENU_OTHER`
+    (Others), `Domain.PDF`, `Domain.PRESENTATIONS` and
+    `Domain.SPREADSHEETS` to `EnabledPreferenceRules`, and 83 file types to
+    `DisabledUTTypes`, empty until then. Both lists are now added by
+    `ensure_listed`; live, the step changed nothing and left the file
+    byte-identical. `bats test/` 119 of 119.
   - **Open: content from Apple partners.** The owner did not mention it;
     confirm whether the pane shows it on 27.2.1 and whether it is off.
   - Acceptance criteria: every toggle in the Spotlight pane reads back off.
@@ -370,7 +379,10 @@ Owner decisions, 2026-11-16, after testing the repository on the new install:
     | Input menu | `com.apple.TextInputMenu visible` false and `com.apple.TextInputMenuAgent "NSStatusItem VisibleCC Item-0"` false |
     | Siri AI item (`Siri AI.app`, `com.apple.campo`) | `"NSStatusItem VisibleCC Item-0"` deleted, not set false |
 
-  - Bluetooth has no key and was not changed; the owner keeps it.
+  - **Fixed, 2026-11-17:** the first run left the Bluetooth icon showing,
+    because the owner's Bluetooth decision was wrongly read as covering the
+    icon; it covers the radio only. Hiding it by hand wrote
+    `-currentHost com.apple.controlcenter Bluetooth` int 8, now a row.
   - **Built, 2026-11-17:** `core/settings/menu-bar.sh` runs as "Menu bar"
     after Dock and Desktop. Rows restart `ControlCenter` and
     `TextInputMenuAgent`; the Siri AI key is deleted, checked gone, and only
@@ -480,22 +492,7 @@ No open tasks.
 
 ## Blocked on a decision
 
-- [ ] Confirm whether a `gitconfig` CLI is wanted in addition to `gitignore`.
-  - Resolved for now as `gitignore` only. Checked against the npm registry on
-    2026-09-13:
-
-    | Package | Version | `bin` | Verdict |
-    | --- | --- | --- | --- |
-    | `gitignore` | 0.7.0 | `gitignore` | CLI. "Automatically fetch gitignore files for any project type" |
-    | `gitconfig` | 2.0.8 | **absent** | Library (`main: lib`), a wrapper for `git config`. No command is installed |
-
-  - The behavior described -- generating a config from a project type passed to
-    it -- is what `gitignore` does. The npm package named `gitconfig` is
-    `teambit/node-gitconfig`, last published 2018, and installing it globally
-    provides no executable at all.
-  - Reopen this if the intended tool is not from npm. Nothing in an npm search
-    for `gitconfig` is a project-type config generator with a CLI, so it would
-    need naming or a source URL.
+No open tasks.
 
 ## Completed
 
@@ -529,6 +526,9 @@ where it generalises.
   it as the verified version, 2026-11-17.
 - [x] ~~Browser extensions: Privacy Badger, Decentraleyes, uBlock Origin.~~
   Withdrawn at the owner's request, 2026-11-17: installed by hand.
+- [x] Confirm whether a `gitconfig` CLI is wanted: no. `gitignore` does the
+  job and npm's `gitconfig` is a library with no command; closed by the owner,
+  2026-11-17.
 - [x] ~~Disable Tips, set the Finder sidebar and tags, turn off General >
   AutoFill and Passwords.~~ Each is stored only where Full Disk Access is
   needed, which the owner does not grant, so they moved to Set by hand in
