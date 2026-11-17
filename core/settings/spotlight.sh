@@ -26,17 +26,60 @@ disable_spotlight_categories() {
     verify_setting com.apple.Spotlight orderedItems "enabled = 1" absent || true
 }
 
-# Written by the macOS 27 pane when Show Related Content and the results from
-# system items (applications, files, folders, iPhone apps, menu items) are
-# turned off. Despite the key's name, a listed rule hides its results.
+# Written by the macOS 27 pane when Show Related Content, the results from
+# system items (applications, files, folders, iPhone apps, menu items) and
+# each Files subcategory (Developer, Documents, Images, Movies, Music, Others,
+# PDFs, Presentations, Spreadsheets) are turned off. Despite the key's name, a
+# listed rule hides its results.
 SPOTLIGHT_HIDDEN_RULES='Custom.relatedContents System.applications System.files
-System.folders System.iphoneApps System.menuItems'
+System.folders System.iphoneApps System.menuItems Domain.SOURCE System.documents
+Domain.IMAGES Domain.MOVIES Domain.MUSIC Domain.MENU_OTHER Domain.PDF
+Domain.PRESENTATIONS Domain.SPREADSHEETS'
+
+# The file types those subcategories cover, as the pane wrote them on 27.2.1.
+SPOTLIGHT_DISABLED_TYPES='com.adobe.pdf com.apple.applescript.alias-object
+com.apple.applescript.data-object com.apple.applescript.text-object
+com.apple.applescript.url-object com.apple.coreanimation-bundle
+com.apple.coreanimation-xml com.apple.dashcode.css
+com.apple.dashcode.javascript com.apple.dashcode.json
+com.apple.dashcode.manifest com.apple.dashcode.xml
+com.apple.dt.bundle.unit-test.objective-c com.apple.dt.document.scheme
+com.apple.dt.document.snapshot com.apple.dt.document.workspace
+com.apple.dt.dvt.plug-in com.apple.dt.ide.plug-in com.apple.dt.playground
+com.apple.instruments.tracetemplate com.apple.interfacebuilder.document
+com.apple.interfacebuilder.document.cocoa com.apple.iphone.developerprofile
+com.apple.iphone.mobileprovision com.apple.iwork.keynote.key
+com.apple.iwork.numbers.numbers com.apple.iwork.numbers.sffnumbers
+com.apple.iwork.numbers.template com.apple.keynote.key
+com.apple.localized-pdf-bundle com.apple.mach-o-binary
+com.apple.mach-o-executable com.apple.mach-o-object com.apple.property-list
+com.apple.protected-mpeg-4-audio com.apple.quartzdebug.introspectiontrace
+com.apple.quicktime-movie com.apple.rez-source
+com.apple.scripting-definition com.apple.symbol-export
+com.apple.x11-mach-o-executable com.apple.xcode.archive
+com.apple.xcode.configsettings com.apple.xcode.docset com.apple.xcode.dsym
+com.apple.xcode.model com.apple.xcode.mom com.apple.xcode.plugin
+com.apple.xcode.plugindata com.apple.xcode.project
+com.apple.xcode.projectdata com.apple.xcode.strings-text
+com.apple.xcode.usersettings com.microsoft.excel.sheet.binary.macroenabled
+com.microsoft.excel.xls com.microsoft.powerpoint.ppt
+com.microsoft.windows-dynamic-link-library com.microsoft.windows-executable
+com.sun.java-archive com.sun.java-class com.sun.web-application-archive
+dyn.ah62d4rv4ge80u5pbsa dyn.ah62d4rv4ge81a7dk
+org.openxmlformats.spreadsheetml.sheet
+org.openxmlformats.spreadsheetml.sheet.macroenabled public.3gpp public.3gpp2
+public.audio public.html public.image public.movie public.mpeg public.mpeg-4
+public.mpeg-4-audio public.mpeg-video public.object-code public.presentation
+public.shell-script public.source-code public.spreadsheet
+public.unix-executable public.xhtml public.xml'
 
 hide_spotlight_rules() {
-    printf "%b\n" "Hiding related content and system items from Spotlight..."
+    printf "%b\n" "Hiding related content, system items and file types from Spotlight..."
 
     # shellcheck disable=SC2086 # one rule per word
     ensure_listed com.apple.Spotlight EnabledPreferenceRules $SPOTLIGHT_HIDDEN_RULES
+    # shellcheck disable=SC2086 # one type per word
+    ensure_listed com.apple.Spotlight DisabledUTTypes $SPOTLIGHT_DISABLED_TYPES
 }
 
 disable_symbolic_hotkey() {
