@@ -22,11 +22,14 @@ setup() {
 # stub_library <body>: the shared library defines the real end_sudo_session,
 # taken from common-script.sh, then runs <body>.
 stub_library() {
-    {
-        awk '/^end_sudo_session\(\) \{/{f=1} f{print} f&&/^}/{exit}' \
-            "$BATS_TEST_DIRNAME/../core/tabs/common-script.sh"
-        printf '%s\n' "$1"
-    } >"$INSTALL_DIR/core/tabs/common-script.sh"
+    local real
+    real="$(awk '/^end_sudo_session\(\) \{/{f=1} f{print} f&&/^}/{exit}' \
+        "$BATS_TEST_DIRNAME/../core/tabs/common-script.sh")"
+    [ -n "$real" ] || {
+        echo "end_sudo_session not found in common-script.sh" >&2
+        return 1
+    }
+    printf '%s\n%s\n' "$real" "$1" >"$INSTALL_DIR/core/tabs/common-script.sh"
 }
 
 @test "when the shared library exits while sourced, drops sudo and removes only TEMP_DIR" {
@@ -61,8 +64,9 @@ stub_library() {
     [ ! -e "$TEMP_DIR" ]
 }
 
+# With a session held, cleanup writes before it removes anything.
 @test "with the terminal gone, cleanup still removes TEMP_DIR" {
-    stub_library 'exit 1'
+    stub_library 'SUDO_KEEPALIVE_STARTED=1; exit 1'
 
     bash "$INSTALL_DIR/core/main.sh" >&- 2>/dev/null || true
 
@@ -91,4 +95,15 @@ stub_library() {
     [ "$(printf '%s\n' "$output" | grep -c 'Administrator session ended')" -eq 0 ]
     [ "$(printf '%s\n' "$output" | grep -c 'command not found')" -eq 0 ]
     [ ! -e "$TEMP_DIR" ]
+}
+
+@test "reports the administrator session ended only when one was held" {
+    stub_library 'exit 1'
+    run bash "$INSTALL_DIR/core/main.sh"
+    [ "$(printf '%s\n' "$output" | grep -c 'Administrator session ended')" -eq 0 ]
+
+    mkdir -p "$TEMP_DIR"
+    stub_library 'SUDO_KEEPALIVE_STARTED=1; exit 1'
+    run bash "$INSTALL_DIR/core/main.sh"
+    printf '%s\n' "$output" | grep -q 'Administrator session ended'
 }

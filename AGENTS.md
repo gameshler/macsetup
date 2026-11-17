@@ -71,13 +71,14 @@ the sudo session with `sudo -k` and, if the session started with Full Disk
 Access, revokes it with `tccutil` by the terminal's bundle identifier. A session
 that started without the grant is the one where it was just given, and macOS
 quits the terminal to apply it, so revoking then would undo it. `cleanup` then
-deletes `TEMP_DIR`, and deletes `INSTALL_DIR` only when the exit status is 0.
+deletes `TEMP_DIR`, and deletes `INSTALL_DIR` only when the exit status is 0
+and `TEMP_DIR` is set.
 
 `core/main.sh` installs the `cleanup` trap before it sources the libraries,
 because sourcing can already take the password to install Homebrew. `cleanup`
 therefore skips functions the libraries have not defined yet, ignores further
-signals, and turns off `set -e`, so a failed write to a closed window cannot
-stop it before the removals. Without `TEMP_DIR`, which only `start.sh` sets,
+signals, and turns off `set -e` and `set -u`, so a failed write to a closed
+window cannot stop it before the removals. Without `TEMP_DIR`, which only `start.sh` sets,
 it deletes nothing.
 
 The owner does not grant the terminal Full Disk Access. Settings that need it
@@ -99,9 +100,10 @@ see what it does.
 
 #### Never point `INSTALL_DIR` at a directory you want to keep
 
-`cleanup` runs `rm -rf "$INSTALL_DIR"` on every clean exit, because it is
-designed for the disposable unpack that `start.sh` makes at
-`~/Downloads/macsetup`. Setting `INSTALL_DIR="$PWD"` to test from a checkout
+`cleanup` runs `rm -rf "$INSTALL_DIR"` on every clean exit with `TEMP_DIR`
+set, because it is designed for the disposable unpack that `start.sh` makes at
+`~/Downloads/macsetup`. A missing `TEMP_DIR` is not a safeguard to rely on:
+the recipe below exports one. Setting `INSTALL_DIR="$PWD"` to test from a checkout
 deletes the checkout when the menu exits. Always run against a throwaway copy
 (see [Running the menu](#running-the-menu)).
 

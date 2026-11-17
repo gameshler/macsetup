@@ -20,22 +20,25 @@ TERMINAL_APP_ID="${__CFBundleIdentifier:-}"
 cleanup() {
     local status=$?
     # A second signal must not cut this short, and after a closed window every
-    # write fails, which under set -e would end it early as well.
+    # write fails, which under set -e or set -u would end it early as well.
     trap '' HUP INT TERM
-    set +e
+    set +eu
 
     if declare -F end_full_disk_access >/dev/null; then
         end_full_disk_access
     fi
     if declare -F end_sudo_session >/dev/null; then
+        local held="${SUDO_KEEPALIVE_STARTED:-0}"
         end_sudo_session
-        printf '  Administrator session ended.\n'
+        [ "$held" = "1" ] && printf '  Administrator session ended.\n'
     fi
 
-    # TEMP_DIR comes from start.sh. Without it this is not the disposable
-    # unpack, so INSTALL_DIR is not deleted even on a clean exit.
-    if [ -z "${TEMP_DIR:-}" ]; then
-        echo "TEMP_DIR is not set. Keeping ${INSTALL_DIR:-the install directory}."
+    # start.sh sets TEMP_DIR alongside the disposable unpack. A run without it
+    # was started some other way, so its INSTALL_DIR is kept even on a clean
+    # exit. This is not a general safeguard: a run with TEMP_DIR set still
+    # deletes whatever INSTALL_DIR names.
+    if [ -z "$TEMP_DIR" ]; then
+        echo "TEMP_DIR is not set. Keeping $INSTALL_DIR."
         return
     fi
     rm -rf "$TEMP_DIR"
